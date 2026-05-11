@@ -1,0 +1,49 @@
+from fastapi import APIRouter, UploadFile, File
+import shutil
+import os
+import traceback
+
+from app.ingestion.pdf_loader import load_pdf
+from app.ingestion.chunker import chunk_documents
+from app.vectorstore.chroma_store import store_chunks
+
+router = APIRouter()
+
+UPLOAD_DIR = "uploads"
+
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@router.post("/upload")
+async def upload_pdf(file: UploadFile = File(...)):
+
+    try:
+
+        file_path = f"{UPLOAD_DIR}/{file.filename}"
+
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        documents = load_pdf(file_path)
+
+        print("PDF Loaded:", len(documents))
+
+        chunks = chunk_documents(documents)
+
+        print("Chunks Generated:", len(chunks))
+
+        for i, chunk in enumerate(chunks[:3]):
+            print(f"Chunk {i}:", chunk.page_content[:200])
+
+
+        store_chunks(chunks)
+
+        print("Stored in ChromaDB")
+
+        return {
+            "message": "PDF uploaded and processed successfully",
+            "chunks": len(chunks)
+        }
+
+    except Exception as e:
+        traceback.print_exc()
+        return {"error": str(e)}
