@@ -1,9 +1,16 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
 def chunk_documents(documents):
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=100
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
     )
 
-    chunks = splitter.split_documents(documents)
+    chunks = text_splitter.split_documents(documents)
+
+    print(f"Chunks Generated: {len(chunks)}")
+
+    for i, chunk in enumerate(chunks[:3]):
+        print(f"Chunk {i}: {chunk.page_content[:250]}")
+
     return chunks

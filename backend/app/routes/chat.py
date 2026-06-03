@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from app.rag.retriever import retrieve_context
-from app.rag.gemini_service import generate_answer
+from app.rag.ollama_service import generate_answer
 
 router = APIRouter()
 
