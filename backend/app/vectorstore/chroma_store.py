@@ -1,25 +1,39 @@
-import os
-import shutil
-
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
 embedding_model = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
+# Create only one Chroma instance
+vector_db = Chroma(
+    persist_directory="chroma_db",
+    embedding_function=embedding_model
+)
+
+
 def store_chunks(chunks):
+    """
+    Add new chunks to the existing database.
+    """
+    vector_db.add_documents(chunks)
 
-    # Delete old vectors
-    if os.path.exists("chroma_db"):
-        shutil.rmtree("chroma_db")
+    print(f"\nStored {len(chunks)} chunks successfully.")
 
-    vector_db = Chroma.from_documents(
-        documents=chunks,
-        embedding=embedding_model,
-        persist_directory="chroma_db"
-    )
 
-    print("Stored in ChromaDB")
+def delete_document_vectors(filename):
+    """
+    Delete all vectors belonging to a specific document.
+    """
 
-    return vector_db
+    try:
+        vector_db.delete(
+            where={
+                "source": filename
+            }
+        )
+
+        print(f"Deleted vectors for: {filename}")
+
+    except Exception as e:
+        print(f"Error deleting vectors: {e}")

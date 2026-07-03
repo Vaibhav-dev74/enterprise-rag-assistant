@@ -1,4 +1,4 @@
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
 embedding_model = HuggingFaceEmbeddings(
@@ -10,18 +10,31 @@ vector_db = Chroma(
     embedding_function=embedding_model
 )
 
-def retrieve_context(query):
 
-    results = vector_db.similarity_search(query, k=5)
+def retrieve_context(query, filename):
+
+    results = vector_db.similarity_search(
+        query,
+        k=8,
+        filter={
+            "source": filename
+        }
+    )
 
     print("\n========== RETRIEVED ==========")
 
+    if len(results) == 0:
+        print("No matching documents found.")
+        return ""
+
     for i, doc in enumerate(results):
         print(f"\nDOC {i+1}")
-        print(doc.page_content[:1000])
+        print("Metadata:", doc.metadata)
+        print(doc.page_content[:500])
 
     context = "\n\n".join(
-        [doc.page_content for doc in results]
+        doc.page_content
+        for doc in results
     )
 
     return context

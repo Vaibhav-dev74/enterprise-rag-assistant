@@ -10,15 +10,14 @@ from app.vectorstore.chroma_store import store_chunks
 router = APIRouter()
 
 UPLOAD_DIR = "uploads"
-
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 
 @router.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
-
     try:
 
-        file_path = f"{UPLOAD_DIR}/{file.filename}"
+        file_path = os.path.join(UPLOAD_DIR, file.filename)
 
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
@@ -31,16 +30,16 @@ async def upload_pdf(file: UploadFile = File(...)):
 
         print("Chunks Generated:", len(chunks))
 
-        for i, chunk in enumerate(chunks[:3]):
-            print(f"Chunk {i}:", chunk.page_content[:200])
-
+        # Add filename metadata
+        for chunk in chunks:
+            chunk.metadata["source"] = file.filename
 
         store_chunks(chunks)
 
         print("Stored in ChromaDB")
 
         return {
-            "message": "PDF uploaded and processed successfully",
+            "message": "PDF uploaded successfully",
             "chunks": len(chunks)
         }
 
