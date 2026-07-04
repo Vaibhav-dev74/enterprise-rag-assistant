@@ -4,8 +4,7 @@ llm = OllamaLLM(
     model="qwen2.5:7b"
 )
 
-def generate_answer(question, context):
-
+def generate_answer(question, context, history):
     prompt = f"""
 You are an expert document question-answering assistant.
 
@@ -37,12 +36,36 @@ Context:
 Question:
 {question}
 
+Rules:
+
+1. Use conversation history only to understand follow-up questions.
+2. Use ONLY the document context to answer.
+3. Never invent information.
+4. If information is missing, reply:
+Information not found in the document.
+5. Use bullet points whenever appropriate.
+
 Answer:
 """
 
     print("\n========== PROMPT ==========")
     print(prompt[:3000])
 
-    response = llm.invoke(prompt)
+def stream_answer(question, context, history):
 
-    return response
+    prompt = f"""
+You are an expert Enterprise RAG Assistant.
+
+Conversation History:
+{history}
+
+Document Context:
+{context}
+
+Question:
+{question}
+
+Answer:
+"""
+
+    return llm.stream(prompt)

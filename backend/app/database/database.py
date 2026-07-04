@@ -4,7 +4,10 @@ DATABASE = "chat_history.db"
 
 
 def get_connection():
-    return sqlite3.connect(DATABASE)
+    return sqlite3.connect(
+        DATABASE,
+        check_same_thread=False
+    )
 
 
 def create_tables():
@@ -17,6 +20,8 @@ def create_tables():
     CREATE TABLE IF NOT EXISTS chat_history (
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        session_id TEXT NOT NULL,
 
         question TEXT NOT NULL,
 

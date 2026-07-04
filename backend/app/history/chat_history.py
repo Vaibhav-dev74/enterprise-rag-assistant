@@ -1,35 +1,35 @@
 from app.database.database import get_connection
 
 
-def save_chat(question, answer, document):
+def save_chat(session_id, question, answer, document):
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
+    cursor.execute("""
         INSERT INTO chat_history
-        (question, answer, document)
-        VALUES (?, ?, ?)
-        """,
-        (question, answer, document)
-    )
+        (session_id, question, answer, document)
+        VALUES (?, ?, ?, ?)
+    """, (
+        session_id,
+        question,
+        answer,
+        document
+    ))
 
     conn.commit()
-
     conn.close()
 
 
 def get_chat_history():
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT
             id,
+            session_id,
             question,
             answer,
             document,
@@ -39,20 +39,18 @@ def get_chat_history():
     """)
 
     rows = cursor.fetchall()
-
     conn.close()
 
     history = []
 
     for row in rows:
-
         history.append({
-
             "id": row[0],
-            "question": row[1],
-            "answer": row[2],
-            "document": row[3],
-            "timestamp": row[4]
+            "session_id": row[1],
+            "question": row[2],
+            "answer": row[3],
+            "document": row[4],
+            "timestamp": row[5]
         })
 
     return history

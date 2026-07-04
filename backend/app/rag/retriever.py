@@ -14,8 +14,8 @@ vector_db = Chroma(
 def retrieve_context(query, filename):
 
     results = vector_db.similarity_search(
-        query,
-        k=8,
+        query=query,
+        k=5,
         filter={
             "source": filename
         }
@@ -23,18 +23,24 @@ def retrieve_context(query, filename):
 
     print("\n========== RETRIEVED ==========")
 
-    if len(results) == 0:
-        print("No matching documents found.")
-        return ""
+    if not results:
+        return "", []
+
+    context = ""
+    citation_set = set()
 
     for i, doc in enumerate(results):
+
         print(f"\nDOC {i+1}")
-        print("Metadata:", doc.metadata)
-        print(doc.page_content[:500])
+        print(doc.metadata)
 
-    context = "\n\n".join(
-        doc.page_content
-        for doc in results
-    )
+        context += doc.page_content + "\n\n"
 
-    return context
+        page = doc.metadata.get("page", 0) + 1
+        source = doc.metadata.get("source", filename)
+
+        citation_set.add(f"{source} (Page {page})")
+
+    citations = sorted(list(citation_set))
+
+    return context, citations
