@@ -27,7 +27,10 @@ def retrieve_context(query, filename):
         return "", []
 
     context = ""
-    citation_set = set()
+
+    citations = []
+
+    seen = set()
 
     for i, doc in enumerate(results):
 
@@ -36,11 +39,23 @@ def retrieve_context(query, filename):
 
         context += doc.page_content + "\n\n"
 
-        page = doc.metadata.get("page", 0) + 1
         source = doc.metadata.get("source", filename)
 
-        citation_set.add(f"{source} (Page {page})")
+        page = doc.metadata.get("page", 0) + 1
 
-    citations = sorted(list(citation_set))
+        # Avoid duplicate citations
+        key = (source, page)
+
+        if key not in seen:
+
+            seen.add(key)
+
+            citations.append({
+
+                "filename": source,
+
+                "page": page
+
+            })
 
     return context, citations

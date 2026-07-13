@@ -28,9 +28,18 @@ async def upload_pdf(file: UploadFile = File(...)):
 
         chunks = chunk_documents(documents)
 
+        chunks = [
+            c for c in chunks
+            if c.page_content.strip()
+        ]
+
         print("Chunks Generated:", len(chunks))
 
-        # Add filename metadata
+        if len(chunks) == 0:
+            return {
+                "error": "No readable text found in this PDF."
+            }
+
         for chunk in chunks:
             chunk.metadata["source"] = file.filename
 

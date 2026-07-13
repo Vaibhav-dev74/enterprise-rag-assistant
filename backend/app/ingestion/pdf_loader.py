@@ -10,8 +10,9 @@ def load_pdf(file_path):
 
     for i, doc in enumerate(documents):
         print(f"\n===== PAGE {i+1} =====")
-        print(repr(doc.page_content[:500]))  # repr shows empty strings clearly
-
+        print("=" * 80)
+        print(doc.page_content)
+        print("=" * 80)
         text = re.sub(r"\s+", " ", doc.page_content).strip()
         doc.page_content = text
 
