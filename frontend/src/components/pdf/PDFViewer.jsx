@@ -1,21 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 
-import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import "react-pdf/dist/Page/AnnotationLayer.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url
 ).toString();
 
-function PDFViewer({ selectedDocument }) {
+function PDFViewer({
+  selectedDocument,
+  selectedPage,
+  setSelectedPage,
+}) {
   const [numPages, setNumPages] = useState(null);
-  const [page, setPage] = useState(1);
 
   const pdfUrl = selectedDocument
-    ? `http://localhost:8000/uploads/${selectedDocument}`
+    ? `http://127.0.0.1:8000/uploads/${encodeURIComponent(
+        selectedDocument
+      )}`
     : null;
+
+  useEffect(() => {
+    if (selectedPage > numPages && numPages) {
+      setSelectedPage(1);
+    }
+  }, [selectedDocument]);
 
   return (
     <div className="w-96 bg-slate-900 border-l border-slate-800 flex flex-col">
@@ -35,20 +46,20 @@ function PDFViewer({ selectedDocument }) {
           <div className="flex justify-between items-center p-3 bg-slate-800">
 
             <button
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
+              disabled={selectedPage <= 1}
+              onClick={() => setSelectedPage((p) => p - 1)}
               className="px-3 py-1 rounded bg-slate-700 text-white disabled:opacity-30"
             >
               ◀
             </button>
 
             <span className="text-white">
-              Page {page} / {numPages || "..."}
+              Page {selectedPage} / {numPages || "..."}
             </span>
 
             <button
-              disabled={page >= numPages}
-              onClick={() => setPage((p) => p + 1)}
+              disabled={selectedPage >= numPages}
+              onClick={() => setSelectedPage((p) => p + 1)}
               className="px-3 py-1 rounded bg-slate-700 text-white disabled:opacity-30"
             >
               ▶
@@ -56,16 +67,20 @@ function PDFViewer({ selectedDocument }) {
 
           </div>
 
-          <div className="overflow-auto flex-1 p-4">
+          <div className="overflow-auto flex justify-center p-4">
+
             <Document
               file={pdfUrl}
               onLoadSuccess={({ numPages }) => {
                 setNumPages(numPages);
-                setPage(1);
               }}
             >
-              <Page pageNumber={page} width={330} />
+              <Page
+                pageNumber={selectedPage}
+                width={330}
+              />
             </Document>
+
           </div>
         </>
       )}

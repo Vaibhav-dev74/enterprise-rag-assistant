@@ -8,7 +8,6 @@ function Message({
   setSelectedDocument,
   setSelectedPage,
 }) {
-
   const isUser = role === "user";
 
   return (
@@ -35,13 +34,10 @@ function Message({
         )}
 
         {!isUser && sources?.length > 0 && (
-
           <div className="mt-6">
 
             <h4 className="text-xs uppercase tracking-widest text-slate-400 mb-3">
-
               Sources
-
             </h4>
 
             <div className="space-y-3">
@@ -51,47 +47,24 @@ function Message({
                 <button
                   key={index}
                   onClick={() => {
-
-                    if (setSelectedDocument)
-                      setSelectedDocument(source.filename);
-
-                    if (setSelectedPage)
-                      setSelectedPage(source.page);
-
+                    setSelectedDocument(source.filename);
+                    setSelectedPage(source.page);
                   }}
                   className="w-full rounded-xl border border-slate-700 bg-slate-900 hover:border-blue-500 hover:bg-slate-800 transition-all p-4 text-left"
                 >
+                  <div className="font-semibold text-white">
+                    📄 {source.filename}
+                  </div>
 
-                  <div className="flex justify-between">
-
-                    <div>
-
-                      <div className="font-semibold text-white">
-
-                        📄 {source.filename}
-
-                      </div>
-
-                      <div className="text-blue-400 text-sm">
-
-                        Page {source.page}
-
-                      </div>
-
-                    </div>
-
+                  <div className="text-blue-400 text-sm">
+                    Page {source.page}
                   </div>
 
                   {source.text && (
-
                     <p className="mt-3 text-sm text-slate-400 line-clamp-3">
-
                       {source.text}
-
                     </p>
-
                   )}
-
                 </button>
 
               ))}
@@ -99,11 +72,8 @@ function Message({
             </div>
 
           </div>
-
         )}
-
       </div>
-
     </div>
   );
 }

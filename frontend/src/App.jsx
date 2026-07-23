@@ -8,7 +8,6 @@ import PDFViewer from "./components/pdf/PDFViewer";
 import "./App.css";
 
 function App() {
-
   const [selectedDocument, setSelectedDocument] = useState("");
   const [selectedPage, setSelectedPage] = useState(1);
 
@@ -32,6 +31,8 @@ function App() {
 
         <PDFViewer
           selectedDocument={selectedDocument}
+          selectedPage={selectedPage}
+          setSelectedPage={setSelectedPage}
         />
 
       </div>

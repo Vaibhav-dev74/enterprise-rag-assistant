@@ -27,9 +27,7 @@ def retrieve_context(query, filename):
         return "", []
 
     context = ""
-
     citations = []
-
     seen = set()
 
     for i, doc in enumerate(results):
@@ -40,10 +38,8 @@ def retrieve_context(query, filename):
         context += doc.page_content + "\n\n"
 
         source = doc.metadata.get("source", filename)
-
         page = doc.metadata.get("page", 0) + 1
 
-        # Avoid duplicate citations
         key = (source, page)
 
         if key not in seen:
@@ -54,7 +50,12 @@ def retrieve_context(query, filename):
 
                 "filename": source,
 
-                "page": page
+                "page": page,
+
+                # Preview shown on citation card
+                "text": doc.page_content[:250] + (
+                    "..." if len(doc.page_content) > 250 else ""
+                )
 
             })
 

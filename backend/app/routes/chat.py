@@ -1,6 +1,6 @@
-from fastapi import APIRouter
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+import traceback
 
 from app.rag.retriever import retrieve_context
 from app.rag.ollama_service import stream_answer
@@ -19,40 +19,57 @@ class ChatRequest(BaseModel):
 @router.post("/chat")
 async def chat(request: ChatRequest):
 
-    # Previous conversation
-    history = get_history(request.session_id)
+    try:
 
-    # Retrieve document context
-    context, citations = retrieve_context(
-        request.question,
-        request.filename
-    )
+        print("\n========== CHAT REQUEST ==========")
+        print(request)
 
-    # Get streaming response from Ollama
-    stream = stream_answer(
-        request.question,
-        context,
-        history
-    )
+        history = get_history(request.session_id)
 
-    # Generator function
-    def generate():
+        print("\nHistory Loaded")
 
-        full_answer = ""
+        context, citations = retrieve_context(
+            request.question,
+            request.filename
+        )
+
+        print("\nContext Retrieved")
+        print(context[:300])
+
+        stream = stream_answer(
+            request.question,
+            context,
+            history
+        )
+
+        print("\nLLM Started")
+
+        answer = ""
 
         for chunk in stream:
-            full_answer += chunk
-            yield chunk
+            answer += chunk
 
-        # Save completed response
+        print("\nAnswer Generated")
+
         save_chat(
             session_id=request.session_id,
             question=request.question,
-            answer=full_answer,
+            answer=answer,
             document=request.filename
         )
 
-    return StreamingResponse(
-        generate(),
-        media_type="text/plain"
-    )
+        print("\nSaved Chat")
+
+        return {
+            "answer": answer,
+            "sources": citations
+        }
+
+    except Exception as e:
+
+        traceback.print_exc()
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )

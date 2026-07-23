@@ -17,7 +17,7 @@ def create_tables():
     cursor = conn.cursor()
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS chat_history (
+    CREATE TABLE IF NOT EXISTS chat_history(
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
@@ -30,9 +30,9 @@ def create_tables():
         document TEXT NOT NULL,
 
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+
     )
     """)
 
     conn.commit()
-
     conn.close()
