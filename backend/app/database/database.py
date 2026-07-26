@@ -1,38 +1,28 @@
-import sqlite3
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-DATABASE = "chat_history.db"
+DATABASE_URL = "sqlite:///chat_history.db"
 
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={
+        "check_same_thread": False
+    }
+)
 
-def get_connection():
-    return sqlite3.connect(
-        DATABASE,
-        check_same_thread=False
-    )
+SessionLocal = sessionmaker(
+    autoflush=False,
+    autocommit=False,
+    bind=engine
+)
+
+Base = declarative_base()
 
 
 def create_tables():
 
-    conn = get_connection()
+    from app.models.user import User
+    from app.models.chat_history import ChatHistory
 
-    cursor = conn.cursor()
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS chat_history(
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        session_id TEXT NOT NULL,
-
-        question TEXT NOT NULL,
-
-        answer TEXT NOT NULL,
-
-        document TEXT NOT NULL,
-
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-
-    )
-    """)
-
-    conn.commit()
-    conn.close()
+    Base.metadata.create_all(bind=engine)

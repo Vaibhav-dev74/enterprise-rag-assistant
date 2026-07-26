@@ -1,36 +1,36 @@
-from app.database.database import get_connection
+from sqlalchemy.orm import Session
+
+from app.database.database import SessionLocal
+from app.models.chat_history import ChatHistory
 
 
-def save_chat(
-    session_id,
-    question,
-    answer,
-    document,
-):
+def save_chat(session_id, question, answer, document):
 
-    conn = get_connection()
+    db: Session = SessionLocal()
 
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        INSERT INTO chat_history
-        (
-            session_id,
-            question,
-            answer,
-            document
-        )
-        VALUES (?, ?, ?, ?)
-        """,
-        (
-            session_id,
-            question,
-            answer,
-            document,
-        ),
+    chat = ChatHistory(
+        session_id=session_id,
+        question=question,
+        answer=answer,
+        document=document,
     )
 
-    conn.commit()
+    db.add(chat)
+    db.commit()
+    db.close()
 
-    conn.close()
+
+def get_chat_history(session_id=None):
+
+    db: Session = SessionLocal()
+
+    query = db.query(ChatHistory)
+
+    if session_id:
+        query = query.filter(ChatHistory.session_id == session_id)
+
+    chats = query.order_by(ChatHistory.id.asc()).all()
+
+    db.close()
+
+    return chats

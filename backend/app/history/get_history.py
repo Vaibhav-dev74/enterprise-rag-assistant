@@ -1,43 +1,32 @@
-from app.database.database import get_connection
+from sqlalchemy.orm import Session
+
+from app.database.database import SessionLocal
+from app.models.chat_history import ChatHistory
 
 
-def get_history(
-    session_id,
-    limit=5,
-):
+def get_history(session_id, limit=5):
 
-    conn = get_connection()
+    db: Session = SessionLocal()
 
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT
-            question,
-            answer
-        FROM chat_history
-        WHERE session_id=?
-        ORDER BY id DESC
-        LIMIT ?
-        """,
-        (
-            session_id,
-            limit,
-        ),
+    chats = (
+        db.query(ChatHistory)
+        .filter(ChatHistory.session_id == session_id)
+        .order_by(ChatHistory.timestamp.desc())
+        .limit(limit)
+        .all()
     )
 
-    rows = cursor.fetchall()
+    db.close()
 
-    conn.close()
+    history = []
 
-    rows.reverse()
+    for chat in reversed(chats):
 
-    history = ""
-
-    for question, answer in rows:
-
-        history += f"User: {question}\n"
-
-        history += f"Assistant: {answer}\n\n"
+        history.append(
+            {
+                "question": chat.question,
+                "answer": chat.answer,
+            }
+        )
 
     return history
