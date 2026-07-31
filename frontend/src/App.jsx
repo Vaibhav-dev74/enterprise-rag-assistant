@@ -1,43 +1,51 @@
-import { useState } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
-import Navbar from "./components/common/Navbar";
-import Sidebar from "./components/sidebar/Sidebar";
-import ChatBox from "./components/chat/ChatBox";
-import PDFViewer from "./components/pdf/PDFViewer";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
 
-import "./App.css";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
-  const [selectedDocument, setSelectedDocument] = useState("");
-  const [selectedPage, setSelectedPage] = useState(1);
-
   return (
-    <div className="h-screen flex flex-col bg-slate-950">
+    <BrowserRouter>
 
-      <Navbar />
+      <Routes>
 
-      <div className="flex flex-1 overflow-hidden">
-
-        <Sidebar
-          selectedDocument={selectedDocument}
-          setSelectedDocument={setSelectedDocument}
+        <Route
+          path="/"
+          element={<Navigate to="/dashboard" />}
         />
 
-        <ChatBox
-          selectedDocument={selectedDocument}
-          setSelectedDocument={setSelectedDocument}
-          setSelectedPage={setSelectedPage}
+        <Route
+          path="/login"
+          element={<Login />}
         />
 
-        <PDFViewer
-          selectedDocument={selectedDocument}
-          selectedPage={selectedPage}
-          setSelectedPage={setSelectedPage}
+        <Route
+          path="/register"
+          element={<Register />}
         />
 
-      </div>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
 
-    </div>
+              <Dashboard />
+
+            </ProtectedRoute>
+          }
+        />
+
+      </Routes>
+
+    </BrowserRouter>
   );
 }
 
