@@ -7,6 +7,7 @@ from app.routes.chat import router as chat_router
 from app.routes.documents import router as documents_router
 from app.routes.history import router as history_router
 from app.routes.auth import router as auth_router
+from app.routes.notifications import router as notifications_router
 from app.database.database import create_tables
 
 
@@ -37,7 +38,7 @@ app.include_router(chat_router)
 app.include_router(documents_router)
 app.include_router(history_router)
 app.include_router(auth_router)
-
+app.include_router(notifications_router)
 
 @app.get("/")
 def home():

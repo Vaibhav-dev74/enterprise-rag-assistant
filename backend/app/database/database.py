@@ -2,7 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+
 DATABASE_URL = "sqlite:///chat_history.db"
+
 
 engine = create_engine(
     DATABASE_URL,
@@ -11,11 +13,13 @@ engine = create_engine(
     }
 )
 
+
 SessionLocal = sessionmaker(
     autoflush=False,
     autocommit=False,
     bind=engine
 )
+
 
 Base = declarative_base()
 
@@ -24,5 +28,8 @@ def create_tables():
 
     from app.models.user import User
     from app.models.chat_history import ChatHistory
+    from app.models.notification import Notification
 
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(
+        bind=engine
+    )

@@ -13,27 +13,64 @@ function DocumentCard({
   selected,
   onSelect,
   onDelete,
-  size = "-- MB",
-  uploaded = "Recently",
 }) {
+  // --------------------------------
+  // Format date
+  // --------------------------------
+
+  const formatDate = (date) => {
+    if (!date) return "Recently";
+
+    const uploadDate = new Date(date);
+
+    if (Number.isNaN(uploadDate.getTime())) {
+      return "Recently";
+    }
+
+    return uploadDate.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  // --------------------------------
+  // Format file size
+  // --------------------------------
+
+  const formatSize = () => {
+    if (!document?.size_bytes) {
+      return "0 KB";
+    }
+
+    const size = document.size_bytes;
+
+    if (size < 1024 * 1024) {
+      return `${(size / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const filename = document?.filename || "Unknown PDF";
+
   return (
     <motion.div
       whileHover={{
-        scale: 1.02,
-        y: -2,
+        scale: 1.01,
+        y: -1,
       }}
       whileTap={{
-        scale: 0.98,
+        scale: 0.99,
       }}
-      onClick={() => onSelect(document)}
-      className={`group relative overflow-hidden rounded-2xl border cursor-pointer transition-all duration-300
-        ${
-          selected
-            ? "border-blue-500 bg-gradient-to-r from-blue-500/15 to-indigo-500/10 shadow-lg shadow-blue-500/20"
-            : "border-slate-700 bg-slate-800/80 hover:border-slate-500 hover:bg-slate-800"
-        }`}
+      onClick={() => onSelect(filename)}
+      className={`group relative overflow-hidden rounded-2xl border cursor-pointer transition-all duration-300 ${
+        selected
+          ? "border-blue-500 bg-gradient-to-r from-blue-500/15 to-indigo-500/10 shadow-lg shadow-blue-500/20"
+          : "border-slate-700 bg-slate-800/80 hover:border-slate-500 hover:bg-slate-800"
+      }`}
     >
-      {/* Selected Border */}
+      {/* Selected indicator */}
 
       {selected && (
         <div className="absolute left-0 top-0 h-full w-1 bg-blue-500" />
@@ -41,14 +78,16 @@ function DocumentCard({
 
       <div className="p-4">
 
+        {/* ================= TOP ================= */}
+
         <div className="flex justify-between items-start">
 
-          {/* Left */}
+          {/* File information */}
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 min-w-0">
 
             <div
-              className={`rounded-xl p-3 ${
+              className={`flex-shrink-0 rounded-xl p-3 ${
                 selected
                   ? "bg-blue-500/20"
                   : "bg-red-500/10"
@@ -64,10 +103,13 @@ function DocumentCard({
               />
             </div>
 
-            <div>
+            <div className="min-w-0">
 
-              <h3 className="font-semibold text-white truncate max-w-[160px]">
-                {document}
+              <h3
+                title={filename}
+                className="font-semibold text-white truncate max-w-[180px]"
+              >
+                {filename}
               </h3>
 
               <p className="text-xs text-slate-400 mt-1">
@@ -78,21 +120,23 @@ function DocumentCard({
 
           </div>
 
-          {/* Right */}
+          {/* Actions */}
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 flex-shrink-0">
 
             {selected && (
               <CheckCircle2
-                size={20}
+                size={19}
                 className="text-blue-400"
               />
             )}
 
             <button
+              type="button"
+              title="Delete document"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(document);
+                onDelete(filename);
               }}
               className="opacity-0 group-hover:opacity-100 transition rounded-lg p-2 hover:bg-red-500/20"
             >
@@ -106,23 +150,34 @@ function DocumentCard({
 
         </div>
 
-        {/* Footer */}
+        {/* ================= FOOTER ================= */}
 
-        <div className="mt-4 flex justify-between text-xs text-slate-400">
+        <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
 
           <div className="flex items-center gap-1">
+
             <Calendar size={13} />
-            {uploaded}
+
+            <span>
+              {formatDate(document?.uploaded_at)}
+            </span>
+
           </div>
 
           <div className="flex items-center gap-1">
+
             <HardDrive size={13} />
-            {size}
+
+            <span>
+              {formatSize()}
+            </span>
+
           </div>
 
         </div>
 
       </div>
+
     </motion.div>
   );
 }
