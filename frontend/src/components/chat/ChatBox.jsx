@@ -20,24 +20,30 @@ function ChatBox({
 
   const sessionId = useRef(crypto.randomUUID());
 
+  // Auto-scroll chat when new messages arrive
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
+      block: "nearest",
     });
   }, [messages, loading]);
 
   const sendQuestion = async (question) => {
+    if (!question?.trim()) return;
+
     if (!selectedDocument) {
       toast.error("Please select a document.");
       return;
     }
 
-    // User message
+    const userQuestion = question.trim();
+
+    // Add user message
     setMessages((prev) => [
       ...prev,
       {
         role: "user",
-        text: question,
+        text: userQuestion,
       },
     ]);
 
@@ -46,14 +52,14 @@ function ChatBox({
     try {
       const res = await api.post("/chat", {
         session_id: sessionId.current,
-        question,
+        question: userQuestion,
         filename: selectedDocument,
       });
 
-      const answer = res.data.answer;
+      const answer = res.data.answer || "No answer generated.";
       const sources = res.data.sources || [];
 
-      // Empty assistant message
+      // Add empty assistant message
       setMessages((prev) => [
         ...prev,
         {
@@ -65,15 +71,22 @@ function ChatBox({
 
       let current = "";
 
+      // Simulated streaming effect
       const words = answer.split(" ");
 
       for (const word of words) {
         current += word + " ";
 
-        await new Promise((r) => setTimeout(r, 20));
+        await new Promise((resolve) =>
+          setTimeout(resolve, 20)
+        );
 
         setMessages((prev) => {
           const updated = [...prev];
+
+          if (updated.length === 0) {
+            return prev;
+          }
 
           updated[updated.length - 1] = {
             ...updated[updated.length - 1],
@@ -84,7 +97,7 @@ function ChatBox({
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("Chat error:", err);
 
       toast.error("Failed to generate answer.");
 
@@ -92,7 +105,7 @@ function ChatBox({
         ...prev,
         {
           role: "assistant",
-          text: "Something went wrong.",
+          text: "Something went wrong while generating the answer.",
         },
       ]);
     } finally {
@@ -101,42 +114,85 @@ function ChatBox({
   };
 
   return (
-    <div className="flex flex-col flex-1 bg-slate-950">
+    <div className="h-full min-h-0 w-full flex flex-col bg-slate-950 overflow-hidden">
 
-      <div className="h-16 border-b border-slate-800 flex items-center px-8">
-        <h2 className="text-white text-lg font-semibold">
-          {selectedDocument || "Select a document"}
-        </h2>
-      </div>
+      {/* ================================================= */}
+      {/* CHAT HEADER                                      */}
+      {/* ================================================= */}
 
-      <div className="flex-1 overflow-y-auto p-8 space-y-6">
+      <div className="h-16 min-h-16 shrink-0 border-b border-slate-800 flex items-center px-6">
 
-        {messages.length === 0 ? (
-          <EmptyState />
-        ) : (
-          messages.map((msg, index) => (
-            <Message
-              key={index}
-              role={msg.role}
-              text={msg.text}
-              sources={msg.sources}
-              setSelectedDocument={setSelectedDocument}
-              setSelectedPage={setSelectedPage}
-            />
-          ))
-        )}
+        <div className="min-w-0">
 
-        {loading && <Typing />}
+          <h2 className="text-white text-lg font-semibold truncate">
+            {selectedDocument || "Select a document"}
+          </h2>
 
-        <div ref={bottomRef} />
+          {selectedDocument && (
+            <p className="text-xs text-slate-500 mt-0.5">
+              Ask questions about this document
+            </p>
+          )}
+
+        </div>
 
       </div>
 
-      <div className="border-t border-slate-800 p-6">
-        <ChatInput
-          onSend={sendQuestion}
-          disabled={loading}
-        />
+      {/* ================================================= */}
+      {/* MESSAGES                                         */}
+      {/* ================================================= */}
+
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6 py-6">
+
+        <div className="max-w-4xl mx-auto space-y-6">
+
+          {messages.length === 0 ? (
+
+            <EmptyState />
+
+          ) : (
+
+            messages.map((msg, index) => (
+              <Message
+                key={index}
+                role={msg.role}
+                text={msg.text}
+                sources={msg.sources}
+                setSelectedDocument={setSelectedDocument}
+                setSelectedPage={setSelectedPage}
+              />
+            ))
+
+          )}
+
+          {loading && <Typing />}
+
+          <div ref={bottomRef} />
+
+        </div>
+
+      </div>
+
+      {/* ================================================= */}
+      {/* CHAT INPUT - ALWAYS VISIBLE                       */}
+      {/* ================================================= */}
+
+      <div className="shrink-0 border-t border-slate-800 bg-slate-950 p-4">
+
+        <div className="max-w-4xl mx-auto">
+
+          <ChatInput
+            onSend={sendQuestion}
+            disabled={loading}
+          />
+
+          <p className="text-center text-[11px] text-slate-600 mt-2">
+            AI-generated responses may contain inaccuracies. Verify
+            important information.
+          </p>
+
+        </div>
+
       </div>
 
     </div>

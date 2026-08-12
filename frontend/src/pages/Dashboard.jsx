@@ -8,7 +8,6 @@ import Sidebar from "../components/sidebar/Sidebar";
 import PDFViewer from "../components/pdf/PDFViewer";
 
 function Dashboard() {
-
   const [active, setActive] = useState("Dashboard");
 
   const [selectedDocument, setSelectedDocument] = useState("");
@@ -16,33 +15,75 @@ function Dashboard() {
   const [selectedPage, setSelectedPage] = useState(1);
 
   return (
-    <div className="h-screen flex flex-col bg-slate-950">
+    <div className="h-screen w-full flex flex-col overflow-hidden bg-slate-950">
 
-      <Navbar />
+      {/* ================================================= */}
+      {/* TOP NAVBAR                                       */}
+      {/* ================================================= */}
 
-      <div className="flex flex-1">
+      <div className="shrink-0">
+        <Navbar />
+      </div>
 
-        <DashboardSidebar
-          active={active}
-          setActive={setActive}
-        />
+      {/* ================================================= */}
+      {/* MAIN WORKSPACE                                   */}
+      {/* ================================================= */}
 
-        <Sidebar
-          selectedDocument={selectedDocument}
-          setSelectedDocument={setSelectedDocument}
-        />
+      <div className="flex flex-1 min-h-0 overflow-hidden">
 
-        <ChatBox
-          selectedDocument={selectedDocument}
-          setSelectedDocument={setSelectedDocument}
-          setSelectedPage={setSelectedPage}
-        />
+        {/* ================================================= */}
+        {/* LEFT APPLICATION SIDEBAR                         */}
+        {/* ================================================= */}
 
-        <PDFViewer
-          selectedDocument={selectedDocument}
-          selectedPage={selectedPage}
-          setSelectedPage={setSelectedPage}
-        />
+        <aside className="w-[250px] shrink-0 h-full min-h-0 overflow-y-auto border-r border-slate-800">
+
+          <DashboardSidebar
+            active={active}
+            setActive={setActive}
+          />
+
+        </aside>
+
+        {/* ================================================= */}
+        {/* DOCUMENT SIDEBAR                                 */}
+        {/* ================================================= */}
+
+        <aside className="w-[360px] shrink-0 h-full min-h-0 overflow-hidden border-r border-slate-800">
+
+          <Sidebar
+            selectedDocument={selectedDocument}
+            setSelectedDocument={setSelectedDocument}
+          />
+
+        </aside>
+
+        {/* ================================================= */}
+        {/* CHAT AREA                                        */}
+        {/* ================================================= */}
+
+        <main className="flex-1 min-w-0 min-h-0 h-full overflow-hidden">
+
+          <ChatBox
+            selectedDocument={selectedDocument}
+            setSelectedDocument={setSelectedDocument}
+            setSelectedPage={setSelectedPage}
+          />
+
+        </main>
+
+        {/* ================================================= */}
+        {/* PDF PREVIEW                                      */}
+        {/* ================================================= */}
+
+        <aside className="w-[380px] shrink-0 h-full min-h-0 overflow-hidden border-l border-slate-800">
+
+          <PDFViewer
+            selectedDocument={selectedDocument}
+            selectedPage={selectedPage}
+            setSelectedPage={setSelectedPage}
+          />
+
+        </aside>
 
       </div>
 
