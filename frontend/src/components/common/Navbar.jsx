@@ -1,289 +1,119 @@
-import { useEffect, useState } from "react";
-
+import { useState } from "react";
 import {
   BrainCircuit,
   Moon,
+  Sun,
   Bell,
   Settings,
   LogOut,
   ChevronDown,
-  Check,
-  Trash2,
 } from "lucide-react";
 
-import {
-  useNavigate,
-} from "react-router-dom";
-
-import api from "../../api/api";
-
+import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext";
 
 function Navbar() {
-
   const navigate = useNavigate();
+
+  const { dark, toggleTheme } = useTheme();
 
   const [open, setOpen] = useState(false);
 
-  const [notificationsOpen, setNotificationsOpen] =
-    useState(false);
-
-  const [notifications, setNotifications] =
-    useState([]);
-
-  const [unreadCount, setUnreadCount] =
-    useState(0);
-
-  const user = JSON.parse(
-    localStorage.getItem("user")
-  );
-
-
-  // -----------------------------------------
-  // Fetch unread count
-  // -----------------------------------------
-
-  const fetchUnreadCount = async () => {
-
-    if (!user?.id) {
-      return;
-    }
-
+  const user = (() => {
     try {
-
-      const response = await api.get(
-        `/notifications/${user.id}/unread-count`
-      );
-
-      setUnreadCount(
-        response.data.count
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Failed to fetch notification count:",
-        error
-      );
-
+      return JSON.parse(localStorage.getItem("user")) || {};
+    } catch {
+      return {};
     }
-
-  };
-
-
-  // -----------------------------------------
-  // Fetch notifications
-  // -----------------------------------------
-
-  const fetchNotifications = async () => {
-
-    if (!user?.id) {
-      return;
-    }
-
-    try {
-
-      const response = await api.get(
-        `/notifications/${user.id}`
-      );
-
-      setNotifications(
-        response.data.notifications
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Failed to fetch notifications:",
-        error
-      );
-
-    }
-
-  };
-
-
-  // -----------------------------------------
-  // Initial notification check
-  // -----------------------------------------
-
-  useEffect(() => {
-
-    fetchUnreadCount();
-
-    fetchNotifications();
-
-    const interval = setInterval(
-      fetchUnreadCount,
-      10000
-    );
-
-    return () => {
-      clearInterval(interval);
-    };
-
-  }, [user?.id]);
-
-
-  // -----------------------------------------
-  // Open notification panel
-  // -----------------------------------------
-
-  const toggleNotifications = async () => {
-
-    const newState = !notificationsOpen;
-
-    setNotificationsOpen(
-      newState
-    );
-
-    if (newState) {
-
-      await fetchNotifications();
-
-    }
-
-  };
-
-
-  // -----------------------------------------
-  // Mark notification as read
-  // -----------------------------------------
-
-  const markAsRead = async (
-    notificationId
-  ) => {
-
-    try {
-
-      await api.put(
-        `/notifications/${notificationId}/read`
-      );
-
-      await fetchNotifications();
-
-      await fetchUnreadCount();
-
-    } catch (error) {
-
-      console.error(
-        "Failed to mark notification:",
-        error
-      );
-
-    }
-
-  };
-
-
-  // -----------------------------------------
-  // Mark all as read
-  // -----------------------------------------
-
-  const markAllAsRead = async () => {
-
-    if (!user?.id) {
-      return;
-    }
-
-    try {
-
-      await api.put(
-        `/notifications/${user.id}/read-all`
-      );
-
-      await fetchNotifications();
-
-      await fetchUnreadCount();
-
-    } catch (error) {
-
-      console.error(
-        "Failed to mark notifications:",
-        error
-      );
-
-    }
-
-  };
-
-
-  // -----------------------------------------
-  // Delete notification
-  // -----------------------------------------
-
-  const deleteNotification = async (
-    notificationId
-  ) => {
-
-    try {
-
-      await api.delete(
-        `/notifications/${notificationId}`
-      );
-
-      await fetchNotifications();
-
-      await fetchUnreadCount();
-
-    } catch (error) {
-
-      console.error(
-        "Failed to delete notification:",
-        error
-      );
-
-    }
-
-  };
-
-
-  // -----------------------------------------
-  // Logout
-  // -----------------------------------------
+  })();
 
   const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
-    localStorage.removeItem(
-      "token"
-    );
+    setOpen(false);
 
-    localStorage.removeItem(
-      "user"
-    );
-
-    navigate(
-      "/login"
-    );
-
+    navigate("/login", { replace: true });
   };
 
+  const goTo = (path) => {
+    setOpen(false);
+    navigate(path);
+  };
 
   return (
+    <header
+      className="
+        h-16
+        w-full
+        shrink-0
+        bg-slate-900
+        dark:bg-slate-900
+        border-b
+        border-slate-700
+        flex
+        items-center
+        justify-between
+        px-3
+        sm:px-5
+        lg:px-8
+        relative
+        z-50
+      "
+    >
+      {/* ================= LEFT ================= */}
 
-    <header className="h-16 bg-slate-900 border-b border-slate-700 flex items-center justify-between px-8 relative">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
 
-      {/* -------------------------------- */}
-      {/* LEFT */}
-      {/* -------------------------------- */}
+        {/* Logo */}
 
-      <div className="flex items-center gap-3">
-
-        <div className="bg-blue-600 p-2 rounded-xl shadow-lg">
-
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="
+            bg-blue-600
+            p-2
+            rounded-xl
+            shadow-lg
+            shadow-blue-600/20
+            shrink-0
+            hover:bg-blue-500
+            transition
+          "
+        >
           <BrainCircuit
-            size={26}
+            size={25}
             color="white"
           />
+        </button>
 
-        </div>
+        {/* Brand */}
 
-        <div>
+        <div className="min-w-0">
 
-          <h1 className="text-xl font-bold text-white">
+          <h1
+            className="
+              text-base
+              sm:text-lg
+              lg:text-xl
+              font-bold
+              text-white
+              leading-tight
+              truncate
+            "
+          >
             Enterprise RAG
           </h1>
 
-          <p className="text-xs text-slate-400">
+          <p
+            className="
+              hidden
+              sm:block
+              text-[10px]
+              lg:text-xs
+              text-slate-400
+              truncate
+            "
+          >
             AI Document Assistant
           </p>
 
@@ -291,257 +121,162 @@ function Navbar() {
 
       </div>
 
+      {/* ================= CENTER ================= */}
 
-      {/* -------------------------------- */}
-      {/* CENTER */}
-      {/* -------------------------------- */}
+      <div
+        className="
+          hidden
+          md:flex
+          items-center
+          gap-2
+          absolute
+          left-1/2
+          -translate-x-1/2
+        "
+      >
 
-      <div className="flex items-center gap-3">
+        <span
+          className="
+            h-3
+            w-3
+            rounded-full
+            bg-green-500
+            animate-pulse
+          "
+        />
 
-        <span className="h-3 w-3 rounded-full bg-green-500 animate-pulse" />
-
-        <p className="text-green-400 font-medium">
+        <p className="text-green-400 text-sm font-medium">
           AI Ready
         </p>
 
       </div>
 
+      {/* ================= RIGHT ================= */}
 
-      {/* -------------------------------- */}
-      {/* RIGHT */}
-      {/* -------------------------------- */}
+      <div className="flex items-center gap-1 sm:gap-3 lg:gap-5">
 
-      <div className="flex items-center gap-5 relative">
+        {/* AI Ready - Mobile */}
 
+        <div className="flex md:hidden items-center gap-1.5">
 
-        {/* ================================= */}
-        {/* NOTIFICATION */}
-        {/* ================================= */}
-
-        <button
-          onClick={toggleNotifications}
-          className="relative p-2 rounded-lg hover:bg-slate-800 transition"
-        >
-
-          <Bell
-            size={22}
-            className="text-slate-300 hover:text-white transition"
+          <span
+            className="
+              h-2.5
+              w-2.5
+              rounded-full
+              bg-green-500
+              animate-pulse
+            "
           />
 
+          <span className="hidden xs:block text-green-400 text-xs font-medium">
+            AI
+          </span>
 
-          {/* Unread badge */}
+        </div>
 
-          {unreadCount > 0 && (
-
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 px-1 flex items-center justify-center">
-
-              {unreadCount > 99
-                ? "99+"
-                : unreadCount}
-
-            </span>
-
-          )}
-
-        </button>
-
-
-        {/* ================================= */}
-        {/* NOTIFICATION PANEL */}
-        {/* ================================= */}
-
-        {notificationsOpen && (
-
-          <div className="absolute right-20 top-14 w-96 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 overflow-hidden">
-
-
-            {/* Header */}
-
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
-
-              <div>
-
-                <h3 className="text-white font-semibold">
-                  Notifications
-                </h3>
-
-                <p className="text-xs text-slate-400">
-                  {unreadCount} unread
-                </p>
-
-              </div>
-
-
-              {unreadCount > 0 && (
-
-                <button
-                  onClick={markAllAsRead}
-                  className="text-blue-400 hover:text-blue-300 text-xs"
-                >
-                  Mark all as read
-                </button>
-
-              )}
-
-            </div>
-
-
-            {/* Notifications */}
-
-            <div className="max-h-96 overflow-y-auto">
-
-              {notifications.length === 0 ? (
-
-                <div className="p-8 text-center">
-
-                  <Bell
-                    size={30}
-                    className="mx-auto text-slate-600 mb-3"
-                  />
-
-                  <p className="text-slate-400 text-sm">
-                    No notifications
-                  </p>
-
-                </div>
-
-              ) : (
-
-                notifications.map(
-                  (notification) => (
-
-                    <div
-                      key={notification.id}
-                      className={`px-5 py-4 border-b border-slate-800 hover:bg-slate-800 transition ${
-                        !notification.is_read
-                          ? "bg-slate-800/50"
-                          : ""
-                      }`}
-                    >
-
-                      <div className="flex gap-3">
-
-                        {/* Icon */}
-
-                        <div className="w-9 h-9 rounded-lg bg-blue-600/20 flex items-center justify-center flex-shrink-0">
-
-                          <Bell
-                            size={17}
-                            className="text-blue-400"
-                          />
-
-                        </div>
-
-
-                        {/* Content */}
-
-                        <div className="flex-1 min-w-0">
-
-                          <div className="flex items-start justify-between gap-2">
-
-                            <h4 className="text-sm font-semibold text-white">
-
-                              {notification.title}
-
-                            </h4>
-
-                            {!notification.is_read && (
-
-                              <span className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
-
-                            )}
-
-                          </div>
-
-                          <p className="text-xs text-slate-400 mt-1">
-
-                            {notification.message}
-
-                          </p>
-
-                          <div className="flex gap-3 mt-3">
-
-                            {!notification.is_read && (
-
-                              <button
-                                onClick={() =>
-                                  markAsRead(
-                                    notification.id
-                                  )
-                                }
-                                className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
-                              >
-
-                                <Check size={13} />
-
-                                Mark read
-
-                              </button>
-
-                            )}
-
-                            <button
-                              onClick={() =>
-                                deleteNotification(
-                                  notification.id
-                                )
-                              }
-                              className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
-                            >
-
-                              <Trash2 size={13} />
-
-                              Delete
-
-                            </button>
-
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  )
-                )
-
-              )}
-
-            </div>
-
-          </div>
-
-        )}
-
-
-        {/* ================================= */}
-        {/* THEME */}
-        {/* ================================= */}
-
-        <Moon
-          size={22}
-          className="cursor-pointer text-slate-300 hover:text-white transition"
-        />
-
-
-        {/* ================================= */}
-        {/* SETTINGS */}
-        {/* ================================= */}
-
-        <Settings
-          size={22}
-          className="cursor-pointer text-slate-300 hover:text-white transition"
-        />
-
-
-        {/* ================================= */}
-        {/* USER */}
-        {/* ================================= */}
+        {/* Notifications */}
 
         <button
-          onClick={() => setOpen(!open)}
-          className="flex items-center gap-3 hover:bg-slate-800 px-3 py-2 rounded-xl transition"
+          onClick={() => goTo("/notifications")}
+          title="Notifications"
+          className="
+            relative
+            p-2
+            rounded-lg
+            hover:bg-slate-800
+            transition
+          "
+        >
+          <Bell
+            size={21}
+            className="text-slate-300 hover:text-white"
+          />
+
+          {/* Notification badge */}
+
+          <span
+            className="
+              absolute
+              -top-0.5
+              -right-0.5
+              bg-red-500
+              text-white
+              text-[9px]
+              rounded-full
+              min-w-[15px]
+              h-[15px]
+              px-1
+              flex
+              items-center
+              justify-center
+            "
+          >
+            0
+          </span>
+        </button>
+
+        {/* Theme */}
+
+        <button
+          onClick={toggleTheme}
+          title={dark ? "Switch to light mode" : "Switch to dark mode"}
+          className="
+            p-2
+            rounded-lg
+            hover:bg-slate-800
+            transition
+          "
+        >
+          {dark ? (
+            <Sun
+              size={21}
+              className="text-yellow-400 hover:text-yellow-300"
+            />
+          ) : (
+            <Moon
+              size={21}
+              className="text-slate-300 hover:text-white"
+            />
+          )}
+        </button>
+
+        {/* Settings */}
+
+        <button
+          onClick={() => goTo("/settings")}
+          title="Settings"
+          className="
+            hidden
+            sm:block
+            p-2
+            rounded-lg
+            hover:bg-slate-800
+            transition
+          "
+        >
+          <Settings
+            size={21}
+            className="text-slate-300 hover:text-white"
+          />
+        </button>
+
+        {/* ================= USER ================= */}
+
+        <button
+          onClick={() => setOpen((prev) => !prev)}
+          className="
+            flex
+            items-center
+            gap-2
+            hover:bg-slate-800
+            px-1.5
+            sm:px-2
+            py-1.5
+            rounded-xl
+            transition
+            max-w-[150px]
+          "
         >
 
           <img
@@ -549,67 +284,141 @@ function Navbar() {
               user?.name || "User"
             )}&background=2563eb&color=fff`}
             alt="Profile"
-            className="w-10 h-10 rounded-full border-2 border-blue-500"
+            className="
+              w-9
+              h-9
+              sm:w-10
+              sm:h-10
+              rounded-full
+              border-2
+              border-blue-500
+              shrink-0
+            "
           />
 
+          <div className="hidden lg:block text-left min-w-0">
 
-          <div className="hidden md:block text-left">
-
-            <p className="text-white text-sm font-semibold">
+            <p className="text-white text-sm font-semibold truncate">
               {user?.name || "User"}
             </p>
 
-            <p className="text-slate-400 text-xs">
+            <p className="text-slate-400 text-xs truncate max-w-[100px]">
               {user?.email || ""}
             </p>
 
           </div>
 
-
           <ChevronDown
-            size={18}
-            className={`text-slate-400 transition-transform ${
-              open
-                ? "rotate-180"
-                : ""
-            }`}
+            size={17}
+            className={`
+              hidden
+              sm:block
+              text-slate-400
+              transition-transform
+              ${open ? "rotate-180" : ""}
+            `}
           />
 
         </button>
 
-
-        {/* ================================= */}
-        {/* USER DROPDOWN */}
-        {/* ================================= */}
+        {/* ================= DROPDOWN ================= */}
 
         {open && (
 
-          <div className="absolute right-0 top-16 w-60 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50">
+          <div
+            className="
+              absolute
+              right-3
+              sm:right-5
+              top-[68px]
+              w-[250px]
+              bg-slate-900
+              border
+              border-slate-700
+              rounded-xl
+              shadow-2xl
+              overflow-hidden
+              z-[100]
+            "
+          >
+
+            {/* User info */}
 
             <div className="px-5 py-4 border-b border-slate-700">
 
-              <p className="font-semibold text-white">
-                {user?.name}
+              <p className="font-semibold text-white truncate">
+                {user?.name || "User"}
               </p>
 
-              <p className="text-sm text-slate-400">
-                {user?.email}
+              <p className="text-sm text-slate-400 truncate">
+                {user?.email || ""}
               </p>
 
             </div>
 
+            {/* Profile */}
+
+            <button
+              onClick={() => goTo("/profile")}
+              className="
+                flex
+                items-center
+                gap-3
+                w-full
+                px-5
+                py-3
+                text-slate-300
+                hover:bg-slate-800
+                transition
+              "
+            >
+              <Settings size={18} />
+
+              Profile
+            </button>
+
+            {/* Settings */}
+
+            <button
+              onClick={() => goTo("/settings")}
+              className="
+                flex
+                items-center
+                gap-3
+                w-full
+                px-5
+                py-3
+                text-slate-300
+                hover:bg-slate-800
+                transition
+              "
+            >
+              <Settings size={18} />
+
+              Settings
+            </button>
+
+            {/* Logout */}
 
             <button
               onClick={logout}
-              className="flex items-center gap-3 w-full px-5 py-4 text-red-400 hover:bg-slate-800 transition"
+              className="
+                flex
+                items-center
+                gap-3
+                w-full
+                px-5
+                py-4
+                text-red-400
+                hover:bg-red-500/10
+                transition
+                border-t
+                border-slate-700
+              "
             >
-
-              <LogOut
-                size={18}
-              />
+              <LogOut size={18} />
 
               Logout
-
             </button>
 
           </div>
@@ -619,9 +428,7 @@ function Navbar() {
       </div>
 
     </header>
-
   );
-
 }
 
 export default Navbar;

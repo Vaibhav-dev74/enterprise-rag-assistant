@@ -11,13 +11,27 @@ import { ThemeProvider } from "./context/ThemeContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
+
     <BrowserRouter>
+
       <AuthProvider>
+
         <ThemeProvider>
-          <Toaster position="top-right" />
+
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+            }}
+          />
+
           <App />
+
         </ThemeProvider>
+
       </AuthProvider>
+
     </BrowserRouter>
+
   </StrictMode>
 );

@@ -14,79 +14,96 @@ function Dashboard() {
 
   const [selectedPage, setSelectedPage] = useState(1);
 
+  const [mobileMenuOpen, setMobileMenuOpen] =
+    useState(false);
+
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden bg-slate-950">
+    <div className="h-dvh w-full overflow-hidden bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white">
 
-      {/* ================================================= */}
-      {/* TOP NAVBAR                                       */}
-      {/* ================================================= */}
+      {/* Navbar */}
 
-      <div className="shrink-0">
-        <Navbar />
-      </div>
+      <Navbar
+        onMenuClick={() =>
+          setMobileMenuOpen(true)
+        }
+      />
 
-      {/* ================================================= */}
-      {/* MAIN WORKSPACE                                   */}
-      {/* ================================================= */}
+      {/* Mobile sidebar */}
 
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-[80] bg-black/60 lg:hidden"
+          onClick={() =>
+            setMobileMenuOpen(false)
+          }
+        >
+          <div
+            className="h-full w-[280px] max-w-[85vw] bg-white dark:bg-slate-900"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+            <DashboardSidebar
+              active={active}
+              setActive={(value) => {
+                setActive(value);
+                setMobileMenuOpen(false);
+              }}
+              mobile
+            />
+          </div>
+        </div>
+      )}
 
-        {/* ================================================= */}
-        {/* LEFT APPLICATION SIDEBAR                         */}
-        {/* ================================================= */}
+      {/* Main */}
 
-        <aside className="w-[250px] shrink-0 h-full min-h-0 overflow-y-auto border-r border-slate-800">
+      <div className="flex h-[calc(100dvh-64px)] min-h-0 w-full overflow-hidden">
 
+        {/* Application sidebar */}
+
+        <aside className="hidden lg:block w-[220px] xl:w-[240px] shrink-0 h-full overflow-hidden border-r border-slate-300 dark:border-slate-800">
           <DashboardSidebar
             active={active}
             setActive={setActive}
           />
-
         </aside>
 
-        {/* ================================================= */}
-        {/* DOCUMENT SIDEBAR                                 */}
-        {/* ================================================= */}
+        {/* Documents */}
 
-        <aside className="w-[360px] shrink-0 h-full min-h-0 overflow-hidden border-r border-slate-800">
-
+        <aside className="hidden md:block w-[300px] lg:w-[320px] xl:w-[350px] shrink-0 h-full min-h-0 overflow-hidden border-r border-slate-300 dark:border-slate-800">
           <Sidebar
             selectedDocument={selectedDocument}
-            setSelectedDocument={setSelectedDocument}
+            setSelectedDocument={
+              setSelectedDocument
+            }
           />
-
         </aside>
 
-        {/* ================================================= */}
-        {/* CHAT AREA                                        */}
-        {/* ================================================= */}
+        {/* Chat */}
 
         <main className="flex-1 min-w-0 min-h-0 h-full overflow-hidden">
-
           <ChatBox
             selectedDocument={selectedDocument}
-            setSelectedDocument={setSelectedDocument}
+            setSelectedDocument={
+              setSelectedDocument
+            }
             setSelectedPage={setSelectedPage}
           />
-
         </main>
 
-        {/* ================================================= */}
-        {/* PDF PREVIEW                                      */}
-        {/* ================================================= */}
+        {/* PDF */}
 
-        <aside className="w-[380px] shrink-0 h-full min-h-0 overflow-hidden border-l border-slate-800">
-
+        <aside className="hidden 2xl:block w-[350px] xl:w-[380px] shrink-0 h-full min-h-0 overflow-hidden border-l border-slate-300 dark:border-slate-800">
           <PDFViewer
             selectedDocument={selectedDocument}
             selectedPage={selectedPage}
-            setSelectedPage={setSelectedPage}
+            setSelectedPage={
+              setSelectedPage
+            }
           />
-
         </aside>
 
       </div>
-
     </div>
   );
 }

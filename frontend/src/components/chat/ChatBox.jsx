@@ -1,4 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+} from "react";
+
 import toast from "react-hot-toast";
 
 import api from "../../api/api";
@@ -13,53 +18,71 @@ function ChatBox({
   setSelectedDocument,
   setSelectedPage,
 }) {
+
   const [messages, setMessages] = useState([]);
+
   const [loading, setLoading] = useState(false);
 
   const bottomRef = useRef(null);
 
-  const sessionId = useRef(crypto.randomUUID());
+  const sessionId = useRef(
+    crypto.randomUUID()
+  );
 
-  // Auto-scroll chat when new messages arrive
+  /* ================================================= */
+  /* AUTO SCROLL */
+  /* ================================================= */
+
   useEffect(() => {
+
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
-      block: "nearest",
     });
+
   }, [messages, loading]);
 
+  /* ================================================= */
+  /* SEND QUESTION */
+  /* ================================================= */
+
   const sendQuestion = async (question) => {
-    if (!question?.trim()) return;
 
     if (!selectedDocument) {
-      toast.error("Please select a document.");
+
+      toast.error(
+        "Please select a document first."
+      );
+
       return;
     }
 
-    const userQuestion = question.trim();
-
-    // Add user message
     setMessages((prev) => [
       ...prev,
       {
         role: "user",
-        text: userQuestion,
+        text: question,
       },
     ]);
 
     setLoading(true);
 
     try {
-      const res = await api.post("/chat", {
-        session_id: sessionId.current,
-        question: userQuestion,
-        filename: selectedDocument,
-      });
 
-      const answer = res.data.answer || "No answer generated.";
-      const sources = res.data.sources || [];
+      const res = await api.post(
+        "/chat",
+        {
+          session_id: sessionId.current,
+          question,
+          filename: selectedDocument,
+        }
+      );
 
-      // Add empty assistant message
+      const answer =
+        res.data.answer || "No answer received.";
+
+      const sources =
+        res.data.sources || [];
+
       setMessages((prev) => [
         ...prev,
         {
@@ -71,131 +94,150 @@ function ChatBox({
 
       let current = "";
 
-      // Simulated streaming effect
       const words = answer.split(" ");
 
       for (const word of words) {
+
         current += word + " ";
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, 20)
+        await new Promise(
+          (resolve) =>
+            setTimeout(resolve, 20)
         );
 
         setMessages((prev) => {
+
           const updated = [...prev];
 
-          if (updated.length === 0) {
-            return prev;
-          }
+          const last =
+            updated.length - 1;
 
-          updated[updated.length - 1] = {
-            ...updated[updated.length - 1],
+          updated[last] = {
+            ...updated[last],
             text: current,
           };
 
           return updated;
         });
       }
-    } catch (err) {
-      console.error("Chat error:", err);
 
-      toast.error("Failed to generate answer.");
+    } catch (err) {
+
+      console.error(err);
+
+      toast.error(
+        "Failed to generate answer."
+      );
 
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: "Something went wrong while generating the answer.",
+          text:
+            "Something went wrong while generating the answer.",
         },
       ]);
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
   return (
-    <div className="h-full min-h-0 w-full flex flex-col bg-slate-950 overflow-hidden">
+
+    <section className="flex h-full min-h-0 w-full flex-col bg-slate-950">
 
       {/* ================================================= */}
-      {/* CHAT HEADER                                      */}
+      {/* CHAT HEADER */}
       {/* ================================================= */}
 
-      <div className="h-16 min-h-16 shrink-0 border-b border-slate-800 flex items-center px-6">
+      <header className="flex h-14 shrink-0 items-center border-b border-slate-800 px-4 sm:h-16 sm:px-6">
 
         <div className="min-w-0">
 
-          <h2 className="text-white text-lg font-semibold truncate">
-            {selectedDocument || "Select a document"}
+          <h2 className="truncate text-base font-semibold text-white sm:text-lg">
+
+            {selectedDocument ||
+              "Select a document"}
+
           </h2>
 
-          {selectedDocument && (
-            <p className="text-xs text-slate-500 mt-0.5">
-              Ask questions about this document
+          {!selectedDocument && (
+            <p className="text-xs text-slate-500">
+              Choose a PDF to start chatting
             </p>
           )}
 
         </div>
 
+      </header>
+
+      {/* ================================================= */}
+      {/* MESSAGES */}
+      {/* ================================================= */}
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
+
+        {messages.length === 0 ? (
+
+          <EmptyState />
+
+        ) : (
+
+          <div className="mx-auto w-full max-w-4xl space-y-5">
+
+            {messages.map(
+              (msg, index) => (
+
+                <Message
+                  key={index}
+                  role={msg.role}
+                  text={msg.text}
+                  sources={msg.sources}
+                  setSelectedDocument={
+                    setSelectedDocument
+                  }
+                  setSelectedPage={
+                    setSelectedPage
+                  }
+                />
+
+              )
+            )}
+
+            {loading && <Typing />}
+
+            <div ref={bottomRef} />
+
+          </div>
+
+        )}
+
       </div>
 
       {/* ================================================= */}
-      {/* MESSAGES                                         */}
+      {/* INPUT */}
       {/* ================================================= */}
 
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-6 py-6">
+      <div className="shrink-0 border-t border-slate-800 bg-slate-950 p-3 sm:p-4 lg:p-5">
 
-        <div className="max-w-4xl mx-auto space-y-6">
-
-          {messages.length === 0 ? (
-
-            <EmptyState />
-
-          ) : (
-
-            messages.map((msg, index) => (
-              <Message
-                key={index}
-                role={msg.role}
-                text={msg.text}
-                sources={msg.sources}
-                setSelectedDocument={setSelectedDocument}
-                setSelectedPage={setSelectedPage}
-              />
-            ))
-
-          )}
-
-          {loading && <Typing />}
-
-          <div ref={bottomRef} />
-
-        </div>
-
-      </div>
-
-      {/* ================================================= */}
-      {/* CHAT INPUT - ALWAYS VISIBLE                       */}
-      {/* ================================================= */}
-
-      <div className="shrink-0 border-t border-slate-800 bg-slate-950 p-4">
-
-        <div className="max-w-4xl mx-auto">
+        <div className="mx-auto w-full max-w-4xl">
 
           <ChatInput
             onSend={sendQuestion}
-            disabled={loading}
+            disabled={
+              loading || !selectedDocument
+            }
           />
-
-          <p className="text-center text-[11px] text-slate-600 mt-2">
-            AI-generated responses may contain inaccuracies. Verify
-            important information.
-          </p>
 
         </div>
 
       </div>
 
-    </div>
+    </section>
+
   );
 }
 
