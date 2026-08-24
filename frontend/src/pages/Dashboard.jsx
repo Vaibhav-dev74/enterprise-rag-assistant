@@ -8,19 +8,40 @@ import Sidebar from "../components/sidebar/Sidebar";
 import PDFViewer from "../components/pdf/PDFViewer";
 
 function Dashboard() {
-  const [active, setActive] = useState("Dashboard");
+  const [active, setActive] =
+    useState("Dashboard");
 
-  const [selectedDocument, setSelectedDocument] = useState("");
+  const [
+    selectedDocument,
+    setSelectedDocument,
+  ] = useState("");
 
-  const [selectedPage, setSelectedPage] = useState(1);
+  const [
+    selectedPage,
+    setSelectedPage,
+  ] = useState(1);
 
-  const [mobileMenuOpen, setMobileMenuOpen] =
-    useState(false);
+  const [
+    mobileMenuOpen,
+    setMobileMenuOpen,
+  ] = useState(false);
 
   return (
-    <div className="h-dvh w-full overflow-hidden bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white">
+    <div
+      className="
+        h-dvh
+        w-full
+        overflow-hidden
+        bg-slate-100
+        text-slate-900
+        dark:bg-slate-950
+        dark:text-white
+        transition-colors
+        duration-300
+      "
+    >
 
-      {/* Navbar */}
+      {/* ================= NAVBAR ================= */}
 
       <Navbar
         onMenuClick={() =>
@@ -28,82 +49,180 @@ function Dashboard() {
         }
       />
 
-      {/* Mobile sidebar */}
+      {/* ================= MOBILE SIDEBAR ================= */}
 
       {mobileMenuOpen && (
+
         <div
-          className="fixed inset-0 z-[80] bg-black/60 lg:hidden"
+          className="
+            fixed
+            inset-0
+            z-[150]
+            bg-black/50
+            lg:hidden
+          "
           onClick={() =>
             setMobileMenuOpen(false)
           }
         >
+
           <div
-            className="h-full w-[280px] max-w-[85vw] bg-white dark:bg-slate-900"
-            onClick={(e) =>
-              e.stopPropagation()
+            className="
+              h-full
+              w-[280px]
+              max-w-[85vw]
+              bg-white
+              dark:bg-slate-900
+              shadow-2xl
+            "
+            onClick={(event) =>
+              event.stopPropagation()
             }
           >
+
             <DashboardSidebar
               active={active}
-              setActive={(value) => {
-                setActive(value);
-                setMobileMenuOpen(false);
-              }}
-              mobile
+              setActive={setActive}
+              onNavigate={() =>
+                setMobileMenuOpen(false)
+              }
             />
+
           </div>
+
         </div>
+
       )}
 
-      {/* Main */}
+      {/* ================= MAIN WORKSPACE ================= */}
 
-      <div className="flex h-[calc(100dvh-64px)] min-h-0 w-full overflow-hidden">
+      <div
+        className="
+          flex
+          h-[calc(100dvh-64px)]
+          min-h-0
+          w-full
+          overflow-hidden
+        "
+      >
 
-        {/* Application sidebar */}
+        {/* ================= DESKTOP SIDEBAR ================= */}
 
-        <aside className="hidden lg:block w-[220px] xl:w-[240px] shrink-0 h-full overflow-hidden border-r border-slate-300 dark:border-slate-800">
+        <aside
+          className="
+            hidden
+            lg:block
+            w-[220px]
+            xl:w-[240px]
+            shrink-0
+            h-full
+            overflow-hidden
+            border-r
+            border-slate-200
+            dark:border-slate-800
+          "
+        >
+
           <DashboardSidebar
             active={active}
             setActive={setActive}
           />
+
         </aside>
 
-        {/* Documents */}
+        {/* ================= DOCUMENT SIDEBAR ================= */}
 
-        <aside className="hidden md:block w-[300px] lg:w-[320px] xl:w-[350px] shrink-0 h-full min-h-0 overflow-hidden border-r border-slate-300 dark:border-slate-800">
+        <aside
+          className="
+            hidden
+            md:block
+            w-[300px]
+            lg:w-[320px]
+            xl:w-[350px]
+            shrink-0
+            h-full
+            min-h-0
+            overflow-hidden
+            border-r
+            border-slate-200
+            dark:border-slate-800
+            bg-white
+            dark:bg-slate-900
+          "
+        >
+
           <Sidebar
-            selectedDocument={selectedDocument}
+            selectedDocument={
+              selectedDocument
+            }
             setSelectedDocument={
               setSelectedDocument
             }
           />
+
         </aside>
 
-        {/* Chat */}
+        {/* ================= CHAT ================= */}
 
-        <main className="flex-1 min-w-0 min-h-0 h-full overflow-hidden">
+        <main
+          className="
+            flex-1
+            min-w-0
+            min-h-0
+            h-full
+            overflow-hidden
+          "
+        >
+
           <ChatBox
-            selectedDocument={selectedDocument}
+            selectedDocument={
+              selectedDocument
+            }
             setSelectedDocument={
               setSelectedDocument
             }
-            setSelectedPage={setSelectedPage}
-          />
-        </main>
-
-        {/* PDF */}
-
-        <aside className="hidden 2xl:block w-[350px] xl:w-[380px] shrink-0 h-full min-h-0 overflow-hidden border-l border-slate-300 dark:border-slate-800">
-          <PDFViewer
-            selectedDocument={selectedDocument}
-            selectedPage={selectedPage}
             setSelectedPage={
               setSelectedPage
             }
           />
+
+        </main>
+
+        {/* ================= PDF VIEWER ================= */}
+
+        <aside
+          className="
+            hidden
+            2xl:block
+            w-[380px]
+            shrink-0
+            h-full
+            min-h-0
+            overflow-hidden
+            border-l
+            border-slate-200
+            dark:border-slate-800
+            bg-white
+            dark:bg-slate-900
+          "
+        >
+
+          <PDFViewer
+            selectedDocument={
+              selectedDocument
+            }
+            selectedPage={
+              selectedPage
+            }
+            setSelectedPage={
+              setSelectedPage
+            }
+          />
+
         </aside>
 
       </div>
+
     </div>
   );
 }

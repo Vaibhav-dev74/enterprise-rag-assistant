@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   BrainCircuit,
   Moon,
@@ -7,98 +8,142 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  User,
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
-import { useTheme } from "../../context/ThemeContext";
+import {
+  useNavigate,
+} from "react-router-dom";
+
+import {
+  useTheme,
+} from "../../context/ThemeContext";
 
 function Navbar() {
-  const navigate = useNavigate();
 
-  const { dark, toggleTheme } = useTheme();
+  const navigate =
+    useNavigate();
 
-  const [open, setOpen] = useState(false);
+  const {
+    dark,
+    toggleTheme,
+  } = useTheme();
+
+  const [open, setOpen] =
+    useState(false);
 
   const user = (() => {
+
     try {
-      return JSON.parse(localStorage.getItem("user")) || {};
+
+      return (
+        JSON.parse(
+          localStorage.getItem(
+            "user"
+          )
+        ) || {}
+      );
+
     } catch {
+
       return {};
+
     }
+
   })();
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+
+    localStorage.removeItem(
+      "token"
+    );
+
+    localStorage.removeItem(
+      "user"
+    );
 
     setOpen(false);
 
-    navigate("/login", { replace: true });
+    navigate(
+      "/login",
+      {
+        replace: true,
+      }
+    );
   };
 
   const goTo = (path) => {
+
     setOpen(false);
+
     navigate(path);
   };
 
   return (
+
     <header
       className="
+        relative
+        z-50
+        flex
         h-16
         w-full
         shrink-0
-        bg-slate-900
-        dark:bg-slate-900
-        border-b
-        border-slate-700
-        flex
         items-center
         justify-between
+        border-b
+        border-slate-200
+        bg-white
         px-3
+        text-slate-900
+        dark:border-slate-700
+        dark:bg-slate-900
+        dark:text-white
         sm:px-5
         lg:px-8
-        relative
-        z-50
       "
     >
-      {/* ================= LEFT ================= */}
 
-      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      {/* LEFT */}
 
-        {/* Logo */}
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
 
         <button
-          onClick={() => navigate("/dashboard")}
+          type="button"
+          onClick={() =>
+            navigate("/dashboard")
+          }
           className="
+            shrink-0
+            rounded-xl
             bg-blue-600
             p-2
-            rounded-xl
             shadow-lg
             shadow-blue-600/20
-            shrink-0
-            hover:bg-blue-500
             transition
+            hover:bg-blue-500
           "
         >
+
           <BrainCircuit
             size={25}
             color="white"
           />
-        </button>
 
-        {/* Brand */}
+        </button>
 
         <div className="min-w-0">
 
           <h1
             className="
+              truncate
               text-base
+              font-bold
+              leading-tight
+              text-slate-900
+              dark:text-white
               sm:text-lg
               lg:text-xl
-              font-bold
-              text-white
-              leading-tight
-              truncate
             "
           >
             Enterprise RAG
@@ -107,11 +152,12 @@ function Navbar() {
           <p
             className="
               hidden
-              sm:block
-              text-[10px]
-              lg:text-xs
-              text-slate-400
               truncate
+              text-[10px]
+              text-slate-500
+              dark:text-slate-400
+              sm:block
+              lg:text-xs
             "
           >
             AI Document Assistant
@@ -121,17 +167,17 @@ function Navbar() {
 
       </div>
 
-      {/* ================= CENTER ================= */}
+      {/* CENTER */}
 
       <div
         className="
-          hidden
-          md:flex
-          items-center
-          gap-2
           absolute
           left-1/2
+          hidden
           -translate-x-1/2
+          items-center
+          gap-2
+          md:flex
         "
       >
 
@@ -139,143 +185,163 @@ function Navbar() {
           className="
             h-3
             w-3
+            animate-pulse
             rounded-full
             bg-green-500
-            animate-pulse
           "
         />
 
-        <p className="text-green-400 text-sm font-medium">
+        <p className="text-sm font-medium text-green-500">
           AI Ready
         </p>
 
       </div>
 
-      {/* ================= RIGHT ================= */}
+      {/* RIGHT */}
 
-      <div className="flex items-center gap-1 sm:gap-3 lg:gap-5">
-
-        {/* AI Ready - Mobile */}
-
-        <div className="flex md:hidden items-center gap-1.5">
-
-          <span
-            className="
-              h-2.5
-              w-2.5
-              rounded-full
-              bg-green-500
-              animate-pulse
-            "
-          />
-
-          <span className="hidden xs:block text-green-400 text-xs font-medium">
-            AI
-          </span>
-
-        </div>
-
-        {/* Notifications */}
+      <div
+        className="
+          flex
+          items-center
+          gap-1
+          sm:gap-2
+          lg:gap-3
+        "
+      >
 
         <button
-          onClick={() => goTo("/notifications")}
+          type="button"
           title="Notifications"
+          onClick={() =>
+            goTo("/notifications")
+          }
           className="
             relative
-            p-2
             rounded-lg
-            hover:bg-slate-800
+            p-2
             transition
+            hover:bg-slate-100
+            dark:hover:bg-slate-800
           "
         >
+
           <Bell
             size={21}
-            className="text-slate-300 hover:text-white"
+            className="
+              text-slate-600
+              dark:text-slate-300
+            "
           />
-
-          {/* Notification badge */}
 
           <span
             className="
               absolute
-              -top-0.5
               -right-0.5
-              bg-red-500
-              text-white
-              text-[9px]
-              rounded-full
-              min-w-[15px]
-              h-[15px]
-              px-1
+              -top-0.5
               flex
+              h-[15px]
+              min-w-[15px]
               items-center
               justify-center
+              rounded-full
+              bg-red-500
+              px-1
+              text-[9px]
+              text-white
             "
           >
             0
           </span>
+
         </button>
 
-        {/* Theme */}
+        {/* THEME */}
 
         <button
+          type="button"
           onClick={toggleTheme}
-          title={dark ? "Switch to light mode" : "Switch to dark mode"}
+          title={
+            dark
+              ? "Switch to light mode"
+              : "Switch to dark mode"
+          }
           className="
-            p-2
             rounded-lg
-            hover:bg-slate-800
+            p-2
             transition
+            hover:bg-slate-100
+            dark:hover:bg-slate-800
           "
         >
+
           {dark ? (
+
             <Sun
               size={21}
-              className="text-yellow-400 hover:text-yellow-300"
+              className="text-yellow-500"
             />
+
           ) : (
+
             <Moon
               size={21}
-              className="text-slate-300 hover:text-white"
+              className="text-slate-600"
             />
+
           )}
+
         </button>
 
-        {/* Settings */}
+        {/* SETTINGS */}
 
         <button
-          onClick={() => goTo("/settings")}
+          type="button"
           title="Settings"
+          onClick={() =>
+            goTo("/settings")
+          }
           className="
             hidden
-            sm:block
-            p-2
             rounded-lg
-            hover:bg-slate-800
+            p-2
             transition
+            hover:bg-slate-100
+            dark:hover:bg-slate-800
+            sm:block
           "
         >
+
           <Settings
             size={21}
-            className="text-slate-300 hover:text-white"
+            className="
+              text-slate-600
+              dark:text-slate-300
+            "
           />
+
         </button>
 
-        {/* ================= USER ================= */}
+        {/* USER */}
 
         <button
-          onClick={() => setOpen((prev) => !prev)}
+          type="button"
+          onClick={() =>
+            setOpen(
+              (prev) => !prev
+            )
+          }
           className="
             flex
+            max-w-[150px]
             items-center
             gap-2
-            hover:bg-slate-800
-            px-1.5
-            sm:px-2
-            py-1.5
             rounded-xl
+            px-1.5
+            py-1.5
             transition
-            max-w-[150px]
+            hover:bg-slate-100
+            dark:hover:bg-slate-800
+            sm:px-2
           "
         >
 
@@ -285,24 +351,40 @@ function Navbar() {
             )}&background=2563eb&color=fff`}
             alt="Profile"
             className="
-              w-9
               h-9
-              sm:w-10
-              sm:h-10
+              w-9
+              shrink-0
               rounded-full
               border-2
               border-blue-500
-              shrink-0
+              sm:h-10
+              sm:w-10
             "
           />
 
-          <div className="hidden lg:block text-left min-w-0">
+          <div className="hidden min-w-0 text-left lg:block">
 
-            <p className="text-white text-sm font-semibold truncate">
+            <p
+              className="
+                truncate
+                text-sm
+                font-semibold
+                text-slate-900
+                dark:text-white
+              "
+            >
               {user?.name || "User"}
             </p>
 
-            <p className="text-slate-400 text-xs truncate max-w-[100px]">
+            <p
+              className="
+                max-w-[100px]
+                truncate
+                text-xs
+                text-slate-500
+                dark:text-slate-400
+              "
+            >
               {user?.email || ""}
             </p>
 
@@ -312,122 +394,162 @@ function Navbar() {
             size={17}
             className={`
               hidden
-              sm:block
-              text-slate-400
+              text-slate-500
               transition-transform
-              ${open ? "rotate-180" : ""}
+              dark:text-slate-400
+              sm:block
+              ${
+                open
+                  ? "rotate-180"
+                  : ""
+              }
             `}
           />
 
         </button>
 
-        {/* ================= DROPDOWN ================= */}
+      </div>
 
-        {open && (
+      {/* USER DROPDOWN */}
+
+      {open && (
+
+        <div
+          className="
+            absolute
+            right-3
+            top-[68px]
+            z-[100]
+            w-[250px]
+            overflow-hidden
+            rounded-xl
+            border
+            border-slate-200
+            bg-white
+            shadow-2xl
+            dark:border-slate-700
+            dark:bg-slate-900
+            sm:right-5
+          "
+        >
 
           <div
             className="
-              absolute
-              right-3
-              sm:right-5
-              top-[68px]
-              w-[250px]
-              bg-slate-900
-              border
-              border-slate-700
-              rounded-xl
-              shadow-2xl
-              overflow-hidden
-              z-[100]
+              border-b
+              border-slate-200
+              px-5
+              py-4
+              dark:border-slate-700
             "
           >
 
-            {/* User info */}
-
-            <div className="px-5 py-4 border-b border-slate-700">
-
-              <p className="font-semibold text-white truncate">
-                {user?.name || "User"}
-              </p>
-
-              <p className="text-sm text-slate-400 truncate">
-                {user?.email || ""}
-              </p>
-
-            </div>
-
-            {/* Profile */}
-
-            <button
-              onClick={() => goTo("/profile")}
+            <p
               className="
-                flex
-                items-center
-                gap-3
-                w-full
-                px-5
-                py-3
-                text-slate-300
-                hover:bg-slate-800
-                transition
+                truncate
+                font-semibold
+                text-slate-900
+                dark:text-white
               "
             >
-              <Settings size={18} />
+              {user?.name || "User"}
+            </p>
 
-              Profile
-            </button>
-
-            {/* Settings */}
-
-            <button
-              onClick={() => goTo("/settings")}
+            <p
               className="
-                flex
-                items-center
-                gap-3
-                w-full
-                px-5
-                py-3
-                text-slate-300
-                hover:bg-slate-800
-                transition
+                truncate
+                text-sm
+                text-slate-500
+                dark:text-slate-400
               "
             >
-              <Settings size={18} />
-
-              Settings
-            </button>
-
-            {/* Logout */}
-
-            <button
-              onClick={logout}
-              className="
-                flex
-                items-center
-                gap-3
-                w-full
-                px-5
-                py-4
-                text-red-400
-                hover:bg-red-500/10
-                transition
-                border-t
-                border-slate-700
-              "
-            >
-              <LogOut size={18} />
-
-              Logout
-            </button>
+              {user?.email || ""}
+            </p>
 
           </div>
 
-        )}
+          <button
+            type="button"
+            onClick={() =>
+              goTo("/profile")
+            }
+            className="
+              flex
+              w-full
+              items-center
+              gap-3
+              px-5
+              py-3
+              text-slate-600
+              transition
+              hover:bg-slate-100
+              dark:text-slate-300
+              dark:hover:bg-slate-800
+            "
+          >
 
-      </div>
+            <User size={18} />
+
+            Profile
+
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              goTo("/settings")
+            }
+            className="
+              flex
+              w-full
+              items-center
+              gap-3
+              px-5
+              py-3
+              text-slate-600
+              transition
+              hover:bg-slate-100
+              dark:text-slate-300
+              dark:hover:bg-slate-800
+            "
+          >
+
+            <Settings size={18} />
+
+            Settings
+
+          </button>
+
+          <button
+            type="button"
+            onClick={logout}
+            className="
+              flex
+              w-full
+              items-center
+              gap-3
+              border-t
+              border-slate-200
+              px-5
+              py-4
+              text-red-500
+              transition
+              hover:bg-red-500/10
+              dark:border-slate-700
+            "
+          >
+
+            <LogOut size={18} />
+
+            Logout
+
+          </button>
+
+        </div>
+
+      )}
 
     </header>
+
   );
 }
 

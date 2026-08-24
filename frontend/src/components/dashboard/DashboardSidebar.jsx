@@ -9,7 +9,10 @@ import {
   X,
 } from "lucide-react";
 
-import { useLocation, useNavigate } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 function DashboardSidebar({
   active,
@@ -17,8 +20,12 @@ function DashboardSidebar({
   mobileOpen,
   setMobileOpen,
 }) {
-  const navigate = useNavigate();
-  const location = useLocation();
+
+  const navigate =
+    useNavigate();
+
+  const location =
+    useLocation();
 
   const menuItems = [
     {
@@ -53,176 +60,215 @@ function DashboardSidebar({
     },
   ];
 
-  const handleNavigation = (item) => {
+  const handleNavigation = (
+    item
+  ) => {
+
     setActive(item.name);
 
     navigate(item.path);
 
-    // Close mobile menu
     if (setMobileOpen) {
       setMobileOpen(false);
     }
+
   };
 
-  const isActive = (item) => {
-    if (location.pathname === item.path) {
-      return true;
-    }
+  const isActive = (
+    item
+  ) => {
 
-    return active === item.name && location.pathname === "/dashboard";
+    return (
+      location.pathname ===
+      item.path
+    );
+
   };
 
   return (
     <>
-      {/* ================================================= */}
-      {/* MOBILE MENU BUTTON                                */}
-      {/* ================================================= */}
+
+      {/* MOBILE MENU BUTTON */}
 
       <button
-        onClick={() => setMobileOpen?.((prev) => !prev)}
+        type="button"
+        onClick={() =>
+          setMobileOpen?.(
+            (prev) => !prev
+          )
+        }
         className="
-          lg:hidden
           fixed
-          top-[72px]
           left-3
+          top-[72px]
           z-[70]
-          p-2
           rounded-lg
-          bg-slate-800
           border
-          border-slate-700
-          text-slate-300
+          border-slate-300
+          bg-white
+          p-2
+          text-slate-700
           shadow-lg
+          dark:border-slate-700
+          dark:bg-slate-800
+          dark:text-slate-300
+          lg:hidden
         "
       >
+
         {mobileOpen ? (
           <X size={22} />
         ) : (
           <Menu size={22} />
         )}
+
       </button>
 
-      {/* ================================================= */}
-      {/* MOBILE BACKDROP                                   */}
-      {/* ================================================= */}
+      {/* BACKDROP */}
 
       {mobileOpen && (
 
         <div
-          onClick={() => setMobileOpen?.(false)}
+          onClick={() =>
+            setMobileOpen?.(false)
+          }
           className="
-            lg:hidden
             fixed
             inset-0
-            bg-black/60
             z-[60]
+            bg-black/60
+            lg:hidden
           "
         />
 
       )}
 
-      {/* ================================================= */}
-      {/* SIDEBAR                                           */}
-      {/* ================================================= */}
+      {/* SIDEBAR */}
 
       <aside
         className={`
           fixed
-          lg:static
-          top-16
           left-0
+          top-16
           z-[65]
           h-[calc(100vh-4rem)]
           w-[250px]
           shrink-0
-          bg-slate-900
+          overflow-y-auto
           border-r
-          border-slate-800
+          border-slate-200
+          bg-white
           transition-transform
           duration-300
           ease-in-out
+          dark:border-slate-800
+          dark:bg-slate-900
+
+          lg:static
+          lg:h-full
 
           ${
             mobileOpen
               ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
+              : `
+                -translate-x-full
+                lg:translate-x-0
+              `
           }
         `}
       >
 
-        {/* ================= HEADER ================= */}
+        <div className="px-5 pb-5 pt-7">
 
-        <div className="px-5 pt-7 pb-5">
-
-          <h2 className="text-xl font-bold text-white">
+          <h2
+            className="
+              text-xl
+              font-bold
+              text-slate-900
+              dark:text-white
+            "
+          >
             Workspace
           </h2>
 
         </div>
 
-        {/* ================= MENU ================= */}
+        <nav className="space-y-2 px-3 pb-5">
 
-        <nav className="px-3 space-y-2">
+          {menuItems.map(
+            (item) => {
 
-          {menuItems.map((item) => {
+              const Icon =
+                item.icon;
 
-            const Icon = item.icon;
+              const activeItem =
+                isActive(item);
 
-            const activeItem = isActive(item);
+              return (
 
-            return (
-
-              <button
-                key={item.name}
-                onClick={() => handleNavigation(item)}
-                className={`
-                  w-full
-                  flex
-                  items-center
-                  gap-4
-                  px-4
-                  py-3.5
-                  rounded-xl
-                  text-left
-                  transition-all
-                  duration-200
-
-                  ${
-                    activeItem
-                      ? `
-                        bg-blue-600
-                        text-white
-                        shadow-lg
-                        shadow-blue-600/20
-                      `
-                      : `
-                        text-slate-300
-                        hover:bg-slate-800
-                        hover:text-white
-                      `
+                <button
+                  key={item.name}
+                  type="button"
+                  onClick={() =>
+                    handleNavigation(item)
                   }
-                `}
-              >
+                  className={`
+                    flex
+                    w-full
+                    items-center
+                    gap-4
+                    rounded-xl
+                    px-4
+                    py-3.5
+                    text-left
+                    transition-all
+                    duration-200
 
-                <Icon
-                  size={21}
-                  strokeWidth={activeItem ? 2.5 : 2}
-                  className="shrink-0"
-                />
+                    ${
+                      activeItem
+                        ? `
+                          bg-blue-600
+                          text-white
+                          shadow-lg
+                          shadow-blue-600/20
+                        `
+                        : `
+                          text-slate-600
+                          hover:bg-slate-100
+                          hover:text-slate-900
+                          dark:text-slate-300
+                          dark:hover:bg-slate-800
+                          dark:hover:text-white
+                        `
+                    }
+                  `}
+                >
 
-                <span className="font-medium">
-                  {item.name}
-                </span>
+                  <Icon
+                    size={21}
+                    strokeWidth={
+                      activeItem
+                        ? 2.5
+                        : 2
+                    }
+                    className="shrink-0"
+                  />
 
-              </button>
+                  <span className="font-medium">
+                    {item.name}
+                  </span>
 
-            );
+                </button>
 
-          })}
+              );
+
+            }
+          )}
 
         </nav>
 
       </aside>
+
     </>
   );
 }
