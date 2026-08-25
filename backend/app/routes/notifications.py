@@ -10,7 +10,11 @@ router = APIRouter(
 )
 
 
-@router.get("/{user_id}")
+# =================================================
+# GET ALL NOTIFICATIONS FOR A USER
+# =================================================
+
+@router.get("/user/{user_id}")
 def get_notifications(user_id: int):
 
     db = SessionLocal()
@@ -36,7 +40,11 @@ def get_notifications(user_id: int):
                     "message": notification.message,
                     "type": notification.type,
                     "is_read": notification.is_read,
-                    "created_at": notification.created_at,
+                    "created_at": (
+                        notification.created_at.isoformat()
+                        if notification.created_at
+                        else None
+                    ),
                 }
                 for notification in notifications
             ]
@@ -47,7 +55,11 @@ def get_notifications(user_id: int):
         db.close()
 
 
-@router.get("/{user_id}/unread-count")
+# =================================================
+# GET UNREAD NOTIFICATION COUNT
+# =================================================
+
+@router.get("/user/{user_id}/unread-count")
 def unread_count(user_id: int):
 
     db = SessionLocal()
@@ -58,7 +70,7 @@ def unread_count(user_id: int):
             db.query(Notification)
             .filter(
                 Notification.user_id == user_id,
-                Notification.is_read == False
+                Notification.is_read.is_(False)
             )
             .count()
         )
@@ -71,6 +83,10 @@ def unread_count(user_id: int):
 
         db.close()
 
+
+# =================================================
+# MARK ONE NOTIFICATION AS READ
+# =================================================
 
 @router.put("/{notification_id}/read")
 def mark_as_read(notification_id: int):
@@ -99,7 +115,8 @@ def mark_as_read(notification_id: int):
         db.commit()
 
         return {
-            "message": "Notification marked as read"
+            "message": "Notification marked as read",
+            "notification_id": notification_id
         }
 
     finally:
@@ -107,32 +124,46 @@ def mark_as_read(notification_id: int):
         db.close()
 
 
-@router.put("/{user_id}/read-all")
+# =================================================
+# MARK ALL USER NOTIFICATIONS AS READ
+# =================================================
+
+@router.put("/user/{user_id}/read-all")
 def mark_all_as_read(user_id: int):
 
     db = SessionLocal()
 
     try:
 
-        db.query(Notification).filter(
-            Notification.user_id == user_id,
-            Notification.is_read == False
-        ).update(
-            {
-                Notification.is_read: True
-            }
+        updated_count = (
+            db.query(Notification)
+            .filter(
+                Notification.user_id == user_id,
+                Notification.is_read.is_(False)
+            )
+            .update(
+                {
+                    Notification.is_read: True
+                },
+                synchronize_session=False
+            )
         )
 
         db.commit()
 
         return {
-            "message": "All notifications marked as read"
+            "message": "All notifications marked as read",
+            "updated_count": updated_count
         }
 
     finally:
 
         db.close()
 
+
+# =================================================
+# DELETE NOTIFICATION
+# =================================================
 
 @router.delete("/{notification_id}")
 def delete_notification(notification_id: int):
@@ -161,7 +192,8 @@ def delete_notification(notification_id: int):
         db.commit()
 
         return {
-            "message": "Notification deleted"
+            "message": "Notification deleted",
+            "notification_id": notification_id
         }
 
     finally:
