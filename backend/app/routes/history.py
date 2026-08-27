@@ -1,30 +1,163 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from app.history.chat_history import get_chat_history
+from app.database.database import SessionLocal
+from app.models.chat_history import ChatHistory
+from app.models.chat_session import ChatSession
 
-router = APIRouter()
+
+router = APIRouter(
+    prefix="/history",
+    tags=["Chat History"]
+)
 
 
-@router.get("/history/{session_id}")
-def history(session_id: str):
+# =================================================
+# GET ALL CONVERSATIONS FOR A USER
+# =================================================
 
-    chats = get_chat_history()
+@router.get("/user/{user_id}")
+def get_user_sessions(user_id: int):
 
-    history = []
+    db = SessionLocal()
 
-    for chat in chats:
+    try:
 
-        if chat.session_id == session_id:
+        sessions = (
+            db.query(ChatSession)
+            .filter(
+                ChatSession.user_id == user_id
+            )
+            .order_by(
+                ChatSession.updated_at.desc()
+            )
+            .all()
+        )
 
-            history.append(
+        return {
+            "sessions": [
                 {
-                    "question": chat.question,
-                    "answer": chat.answer,
-                    "document": chat.document,
-                    "timestamp": chat.timestamp,
+                    "id": session.id,
+                    "session_id": session.session_id,
+                    "title": session.title,
+                    "document": session.document,
+                    "created_at": session.created_at,
+                    "updated_at": session.updated_at,
                 }
+                for session in sessions
+            ]
+        }
+
+    finally:
+
+        db.close()
+
+
+# =================================================
+# GET MESSAGES FROM ONE CONVERSATION
+# =================================================
+
+@router.get("/session/{session_id}")
+def get_session_history(session_id: str):
+
+    db = SessionLocal()
+
+    try:
+
+        session = (
+            db.query(ChatSession)
+            .filter(
+                ChatSession.session_id == session_id
+            )
+            .first()
+        )
+
+        if not session:
+
+            raise HTTPException(
+                status_code=404,
+                detail="Chat session not found"
             )
 
-    return {
-        "history": history
-    }
+        messages = (
+            db.query(ChatHistory)
+            .filter(
+                ChatHistory.session_id == session_id
+            )
+            .order_by(
+                ChatHistory.timestamp.asc()
+            )
+            .all()
+        )
+
+        return {
+            "session": {
+                "id": session.id,
+                "session_id": session.session_id,
+                "title": session.title,
+                "document": session.document,
+                "created_at": session.created_at,
+                "updated_at": session.updated_at,
+            },
+
+            "messages": [
+                {
+                    "id": message.id,
+                    "question": message.question,
+                    "answer": message.answer,
+                    "document": message.document,
+                    "timestamp": message.timestamp,
+                }
+                for message in messages
+            ]
+        }
+
+    finally:
+
+        db.close()
+
+
+# =================================================
+# DELETE CONVERSATION
+# =================================================
+
+@router.delete("/session/{session_id}")
+def delete_session(session_id: str):
+
+    db = SessionLocal()
+
+    try:
+
+        session = (
+            db.query(ChatSession)
+            .filter(
+                ChatSession.session_id == session_id
+            )
+            .first()
+        )
+
+        if not session:
+
+            raise HTTPException(
+                status_code=404,
+                detail="Chat session not found"
+            )
+
+        # Delete all messages first
+        db.query(ChatHistory).filter(
+            ChatHistory.session_id == session_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        # Delete conversation
+        db.delete(session)
+
+        db.commit()
+
+        return {
+            "message": "Conversation deleted successfully"
+        }
+
+    finally:
+
+        db.close()

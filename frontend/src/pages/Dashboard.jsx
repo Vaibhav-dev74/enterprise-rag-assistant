@@ -1,4 +1,11 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+} from "react";
+
+import {
+  useSearchParams,
+} from "react-router-dom";
 
 import Navbar from "../components/common/Navbar";
 import DashboardSidebar from "../components/dashboard/DashboardSidebar";
@@ -7,26 +14,138 @@ import ChatBox from "../components/chat/ChatBox";
 import Sidebar from "../components/sidebar/Sidebar";
 import PDFViewer from "../components/pdf/PDFViewer";
 
+
 function Dashboard() {
+
+  const [
+    searchParams,
+    setSearchParams,
+  ] = useSearchParams();
+
+
   const [active, setActive] =
     useState("Dashboard");
+
 
   const [
     selectedDocument,
     setSelectedDocument,
   ] = useState("");
 
+
   const [
     selectedPage,
     setSelectedPage,
   ] = useState(1);
+
 
   const [
     mobileMenuOpen,
     setMobileMenuOpen,
   ] = useState(false);
 
+
+  const [
+    sessionId,
+    setSessionIdState,
+  ] = useState(
+    searchParams.get("session") || ""
+  );
+
+
+  /* =============================================== */
+  /* KEEP SESSION ID IN URL                           */
+  /* =============================================== */
+
+  useEffect(() => {
+
+    const urlSession =
+      searchParams.get("session");
+
+
+    if (
+      urlSession &&
+      urlSession !== sessionId
+    ) {
+
+      setSessionIdState(
+        urlSession
+      );
+
+    }
+
+
+    if (
+      !urlSession &&
+      !sessionId
+    ) {
+
+      const newSessionId =
+        crypto.randomUUID();
+
+
+      setSessionIdState(
+        newSessionId
+      );
+
+
+      setSearchParams(
+        {
+          session:
+            newSessionId,
+        },
+        {
+          replace: true,
+        }
+      );
+
+    }
+
+  }, [
+    searchParams,
+    sessionId,
+    setSearchParams,
+  ]);
+
+
+  /* =============================================== */
+  /* CHANGE SESSION                                   */
+  /* =============================================== */
+
+  const setSessionId = (
+    newSessionId
+  ) => {
+
+    setSessionIdState(
+      newSessionId
+    );
+
+
+    setSearchParams(
+      {
+        session:
+          newSessionId,
+      }
+    );
+
+  };
+
+
+  /* =============================================== */
+  /* REFRESH CHAT LIST EVENT                          */
+  /* =============================================== */
+
+  const handleChatUpdated = () => {
+
+    window.dispatchEvent(
+      new Event("chat-updated")
+    );
+
+  };
+
+
   return (
+
     <div
       className="
         h-dvh
@@ -36,65 +155,15 @@ function Dashboard() {
         text-slate-900
         dark:bg-slate-950
         dark:text-white
-        transition-colors
-        duration-300
       "
     >
 
-      {/* ================= NAVBAR ================= */}
+      {/* NAVBAR */}
 
-      <Navbar
-        onMenuClick={() =>
-          setMobileMenuOpen(true)
-        }
-      />
+      <Navbar />
 
-      {/* ================= MOBILE SIDEBAR ================= */}
 
-      {mobileMenuOpen && (
-
-        <div
-          className="
-            fixed
-            inset-0
-            z-[150]
-            bg-black/50
-            lg:hidden
-          "
-          onClick={() =>
-            setMobileMenuOpen(false)
-          }
-        >
-
-          <div
-            className="
-              h-full
-              w-[280px]
-              max-w-[85vw]
-              bg-white
-              dark:bg-slate-900
-              shadow-2xl
-            "
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-          >
-
-            <DashboardSidebar
-              active={active}
-              setActive={setActive}
-              onNavigate={() =>
-                setMobileMenuOpen(false)
-              }
-            />
-
-          </div>
-
-        </div>
-
-      )}
-
-      {/* ================= MAIN WORKSPACE ================= */}
+      {/* MAIN */}
 
       <div
         className="
@@ -106,48 +175,49 @@ function Dashboard() {
         "
       >
 
-        {/* ================= DESKTOP SIDEBAR ================= */}
+        {/* APPLICATION SIDEBAR */}
 
         <aside
           className="
             hidden
             lg:block
-            w-[220px]
-            xl:w-[240px]
-            shrink-0
             h-full
+            w-[220px]
+            shrink-0
             overflow-hidden
             border-r
-            border-slate-200
+            border-slate-300
             dark:border-slate-800
+            xl:w-[240px]
           "
         >
 
           <DashboardSidebar
             active={active}
             setActive={setActive}
+            mobileOpen={mobileMenuOpen}
+            setMobileOpen={setMobileMenuOpen}
           />
 
         </aside>
 
-        {/* ================= DOCUMENT SIDEBAR ================= */}
+
+        {/* DOCUMENT SIDEBAR */}
 
         <aside
           className="
             hidden
             md:block
-            w-[300px]
-            lg:w-[320px]
-            xl:w-[350px]
-            shrink-0
             h-full
             min-h-0
+            w-[300px]
+            shrink-0
             overflow-hidden
             border-r
-            border-slate-200
+            border-slate-300
             dark:border-slate-800
-            bg-white
-            dark:bg-slate-900
+            lg:w-[320px]
+            xl:w-[350px]
           "
         >
 
@@ -162,48 +232,63 @@ function Dashboard() {
 
         </aside>
 
-        {/* ================= CHAT ================= */}
+
+        {/* CHAT */}
 
         <main
           className="
-            flex-1
-            min-w-0
             min-h-0
-            h-full
+            min-w-0
+            flex-1
             overflow-hidden
           "
         >
 
           <ChatBox
+
             selectedDocument={
               selectedDocument
             }
+
             setSelectedDocument={
               setSelectedDocument
             }
+
             setSelectedPage={
               setSelectedPage
             }
+
+            sessionId={
+              sessionId
+            }
+
+            setSessionId={
+              setSessionId
+            }
+
+            onChatUpdated={
+              handleChatUpdated
+            }
+
           />
 
         </main>
 
-        {/* ================= PDF VIEWER ================= */}
+
+        {/* PDF VIEWER */}
 
         <aside
           className="
             hidden
             2xl:block
-            w-[380px]
-            shrink-0
             h-full
             min-h-0
+            w-[380px]
+            shrink-0
             overflow-hidden
             border-l
-            border-slate-200
+            border-slate-300
             dark:border-slate-800
-            bg-white
-            dark:bg-slate-900
           "
         >
 
@@ -211,9 +296,11 @@ function Dashboard() {
             selectedDocument={
               selectedDocument
             }
+
             selectedPage={
               selectedPage
             }
+
             setSelectedPage={
               setSelectedPage
             }
@@ -224,7 +311,10 @@ function Dashboard() {
       </div>
 
     </div>
+
   );
+
 }
+
 
 export default Dashboard;

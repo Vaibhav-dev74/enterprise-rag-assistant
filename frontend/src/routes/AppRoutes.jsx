@@ -6,7 +6,10 @@ import {
 
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+
 import Dashboard from "../pages/Dashboard";
+import Chats from "../pages/Chats";
+
 import Notifications from "../pages/Notifications";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
@@ -14,11 +17,14 @@ import Notfound from "../pages/Notfound";
 
 import ProtectedRoute from "./ProtectedRoute";
 
+
 function AppRoutes() {
+
   return (
+
     <Routes>
 
-      {/* ================= PUBLIC ================= */}
+      {/* PUBLIC */}
 
       <Route
         path="/login"
@@ -31,16 +37,20 @@ function AppRoutes() {
       />
 
 
-      {/* ================= PROTECTED ================= */}
+      {/* PROTECTED */}
 
       <Route
         path="/"
         element={
           <ProtectedRoute>
-            <Navigate to="/dashboard" replace />
+            <Navigate
+              to="/dashboard"
+              replace
+            />
           </ProtectedRoute>
         }
       />
+
 
       <Route
         path="/dashboard"
@@ -51,6 +61,17 @@ function AppRoutes() {
         }
       />
 
+
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute>
+            <Chats />
+          </ProtectedRoute>
+        }
+      />
+
+
       <Route
         path="/notifications"
         element={
@@ -60,6 +81,7 @@ function AppRoutes() {
         }
       />
 
+
       <Route
         path="/profile"
         element={
@@ -68,6 +90,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
 
       <Route
         path="/settings"
@@ -79,7 +102,7 @@ function AppRoutes() {
       />
 
 
-      {/* ================= 404 ================= */}
+      {/* 404 */}
 
       <Route
         path="*"
@@ -87,7 +110,10 @@ function AppRoutes() {
       />
 
     </Routes>
+
   );
+
 }
+
 
 export default AppRoutes;

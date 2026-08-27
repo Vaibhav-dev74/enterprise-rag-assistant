@@ -4,8 +4,8 @@ from sqlalchemy.sql import func
 from app.database.database import Base
 
 
-class ChatHistory(Base):
-    __tablename__ = "chat_history"
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
 
     id = Column(
         Integer,
@@ -22,18 +22,15 @@ class ChatHistory(Base):
 
     session_id = Column(
         String,
+        unique=True,
         nullable=False,
         index=True
     )
 
-    question = Column(
+    title = Column(
         String,
-        nullable=False
-    )
-
-    answer = Column(
-        String,
-        nullable=False
+        nullable=False,
+        default="New Conversation"
     )
 
     document = Column(
@@ -41,7 +38,13 @@ class ChatHistory(Base):
         nullable=True
     )
 
-    timestamp = Column(
+    created_at = Column(
         DateTime(timezone=True),
         server_default=func.now()
+    )
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now()
     )

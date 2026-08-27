@@ -1,6 +1,11 @@
-import { useCallback, useState } from "react";
+import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { UploadCloud, FileText, X } from "lucide-react";
+import {
+  UploadCloud,
+  FileText,
+  X,
+  CheckCircle2,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 
@@ -16,17 +21,22 @@ function FileUpload({ onUpload }) {
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+  } = useDropzone({
     onDrop,
     multiple: false,
     accept: {
       "application/pdf": [".pdf"],
     },
+    maxFiles: 1,
   });
 
   const uploadFile = async () => {
     if (!file) {
-      toast.error("Select a PDF first.");
+      toast.error("Please select a PDF first.");
       return;
     }
 
@@ -34,91 +44,216 @@ function FileUpload({ onUpload }) {
       setLoading(true);
 
       const formData = new FormData();
+
       formData.append("file", file);
 
-      const res = await api.post("/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await api.post(
+        "/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
-      toast.success(res.data.message);
+      toast.success(
+        res.data?.message ||
+          "Document uploaded successfully"
+      );
 
       setFile(null);
 
-      if (onUpload) onUpload();
+      if (onUpload) {
+        await onUpload();
+      }
+
+      // Tell Navbar to refresh notification count
+      window.dispatchEvent(
+        new Event("notifications-updated")
+      );
 
     } catch (err) {
-      console.error(err);
-      toast.error("Upload failed");
+      console.error(
+        "Upload error:",
+        err
+      );
+
+      const message =
+        err?.response?.data?.detail ||
+        "Upload failed. Please try again.";
+
+      toast.error(message);
+
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+
+      {/* Upload Area */}
 
       <motion.div
-        whileHover={{ scale: 1.01 }}
+        whileHover={{
+          scale: 1.01,
+        }}
+        whileTap={{
+          scale: 0.995,
+        }}
         {...getRootProps()}
-        className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 transition-all
-        ${
-          isDragActive
-            ? "border-blue-500 bg-blue-500/10"
-            : "border-slate-700 bg-slate-800 hover:border-blue-400"
-        }`}
+        className={`
+          cursor-pointer
+          rounded-2xl
+          border-2
+          border-dashed
+          p-5
+          text-center
+          transition-all
+          duration-200
+
+          ${
+            isDragActive
+              ? `
+                border-blue-500
+                bg-blue-50
+                dark:bg-blue-500/10
+              `
+              : `
+                border-slate-300
+                bg-slate-50
+                hover:border-blue-400
+                hover:bg-blue-50/60
+
+                dark:border-slate-700
+                dark:bg-slate-800/70
+                dark:hover:border-blue-500
+                dark:hover:bg-blue-500/10
+              `
+          }
+        `}
       >
+
         <input {...getInputProps()} />
 
-        <div className="flex flex-col items-center text-center">
+        <div className="flex flex-col items-center">
 
-          <UploadCloud
-            size={42}
-            className="text-blue-400 mb-3"
-          />
+          <div
+            className="
+              mb-3
+              flex
+              h-12
+              w-12
+              items-center
+              justify-center
+              rounded-xl
+              bg-blue-100
+              text-blue-600
 
-          <h3 className="text-white font-semibold">
+              dark:bg-blue-500/15
+              dark:text-blue-400
+            "
+          >
+            <UploadCloud size={25} />
+          </div>
 
+          <h3
+            className="
+              font-semibold
+              text-slate-800
+              dark:text-white
+            "
+          >
             {isDragActive
-              ? "Drop PDF here"
-              : "Drag & Drop PDF"}
-
+              ? "Drop your PDF here"
+              : "Upload a PDF"}
           </h3>
 
-          <p className="text-slate-400 text-sm mt-2">
-
-            or click to browse
-
+          <p
+            className="
+              mt-1
+              text-sm
+              text-slate-500
+              dark:text-slate-400
+            "
+          >
+            Drag and drop or click to browse
           </p>
 
         </div>
 
       </motion.div>
 
+      {/* Selected File */}
+
       {file && (
 
         <motion.div
-          layout
-          className="rounded-xl bg-slate-800 border border-slate-700 p-4"
+          initial={{
+            opacity: 0,
+            y: -5,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          className="
+            rounded-xl
+            border
+            border-blue-200
+            bg-blue-50
+            p-3
+
+            dark:border-slate-700
+            dark:bg-slate-800
+          "
         >
 
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between gap-3">
 
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
 
-              <FileText
-                className="text-red-400"
-                size={24}
-              />
+              <div
+                className="
+                  flex
+                  h-10
+                  w-10
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-red-100
+                  text-red-500
 
-              <div>
+                  dark:bg-red-500/10
+                "
+              >
+                <FileText size={21} />
+              </div>
 
-                <p className="text-white text-sm font-medium">
+              <div className="min-w-0">
+
+                <p
+                  className="
+                    truncate
+                    text-sm
+                    font-medium
+                    text-slate-800
+                    dark:text-white
+                  "
+                >
                   {file.name}
                 </p>
 
-                <p className="text-slate-400 text-xs">
+                <p
+                  className="
+                    mt-0.5
+                    text-xs
+                    text-slate-500
+                    dark:text-slate-400
+                  "
+                >
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </p>
 
@@ -127,11 +262,24 @@ function FileUpload({ onUpload }) {
             </div>
 
             <button
-              onClick={() => setFile(null)}
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setFile(null);
+              }}
+              className="
+                shrink-0
+                rounded-lg
+                p-1.5
+                text-slate-400
+                transition
+                hover:bg-red-100
+                hover:text-red-500
+
+                dark:hover:bg-red-500/10
+              "
             >
-              <X
-                className="text-slate-400 hover:text-red-400"
-              />
+              <X size={18} />
             </button>
 
           </div>
@@ -140,15 +288,67 @@ function FileUpload({ onUpload }) {
 
       )}
 
+      {/* Upload Button */}
+
       <button
+        type="button"
         disabled={loading || !file}
         onClick={uploadFile}
-        className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-semibold py-3 transition"
+        className="
+          flex
+          w-full
+          items-center
+          justify-center
+          gap-2
+          rounded-xl
+          bg-blue-600
+          py-3
+          font-semibold
+          text-white
+          shadow-sm
+          transition
+
+          hover:bg-blue-700
+          hover:shadow-lg
+
+          disabled:cursor-not-allowed
+          disabled:bg-slate-300
+          disabled:text-slate-500
+
+          dark:disabled:bg-slate-700
+          dark:disabled:text-slate-400
+        "
       >
-        {loading ? "Uploading..." : "Upload PDF"}
+        {loading ? (
+          <>
+            <RefreshIcon />
+            Processing PDF...
+          </>
+        ) : (
+          <>
+            <CheckCircle2 size={18} />
+            Upload Document
+          </>
+        )}
       </button>
 
     </div>
+  );
+}
+
+function RefreshIcon() {
+  return (
+    <div
+      className="
+        h-4
+        w-4
+        animate-spin
+        rounded-full
+        border-2
+        border-white/30
+        border-t-white
+      "
+    />
   );
 }
 

@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import {
   Search,
   Files,
   RefreshCw,
+  FileText,
 } from "lucide-react";
 
 import toast from "react-hot-toast";
@@ -13,24 +17,22 @@ import api from "../../api/api";
 import FileUpload from "./FileUpload";
 import DocumentCard from "./DocumentCard";
 
-
 function Sidebar({
   selectedDocument,
   setSelectedDocument,
 }) {
 
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] =
+    useState([]);
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [deleting, setDeleting] = useState(false);
-
-
-  // --------------------------------
-  // Load documents
-  // --------------------------------
+  const [deleting, setDeleting] =
+    useState(false);
 
   const loadDocuments = async () => {
 
@@ -38,10 +40,11 @@ function Sidebar({
 
       setLoading(true);
 
-      const res = await api.get("/documents");
+      const res =
+        await api.get("/documents");
 
       setDocuments(
-        res.data.documents || []
+        res.data?.documents || []
       );
 
     } catch (err) {
@@ -60,29 +63,42 @@ function Sidebar({
       setLoading(false);
 
     }
+
   };
 
+ useEffect(() => {
 
-  // --------------------------------
-  // Initial load
-  // --------------------------------
+  loadDocuments();
 
-  useEffect(() => {
+  const refreshDocuments = () => {
 
     loadDocuments();
 
-  }, []);
+  };
 
+  window.addEventListener(
+    "documents-updated",
+    refreshDocuments
+  );
 
-  // --------------------------------
-  // Delete document
-  // --------------------------------
+  return () => {
 
-  const deleteDocument = async (filename) => {
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${filename}"?`
+    window.removeEventListener(
+      "documents-updated",
+      refreshDocuments
     );
+
+  };
+
+}, []);
+  const deleteDocument = async (
+    filename
+  ) => {
+
+    const confirmed =
+      window.confirm(
+        `Are you sure you want to delete "${filename}"?`
+      );
 
     if (!confirmed) {
       return;
@@ -93,23 +109,21 @@ function Sidebar({
       setDeleting(true);
 
       await api.delete(
-        `/documents/${encodeURIComponent(filename)}`
+        `/documents/${encodeURIComponent(
+          filename
+        )}`
       );
 
       toast.success(
         "Document deleted successfully"
       );
 
-      // If deleted document was selected
       if (
         selectedDocument === filename
       ) {
-
         setSelectedDocument("");
-
       }
 
-      // Reload documents
       await loadDocuments();
 
     } catch (err) {
@@ -130,12 +144,8 @@ function Sidebar({
       setDeleting(false);
 
     }
+
   };
-
-
-  // --------------------------------
-  // Search documents
-  // --------------------------------
 
   const filteredDocuments =
     documents.filter((doc) => {
@@ -151,59 +161,167 @@ function Sidebar({
 
     });
 
-
   return (
 
-    <aside className="h-full flex flex-col bg-slate-900 border-r border-slate-800 min-h-0">
+    <aside
+      className="
+        flex
+        h-full
+        min-h-0
+        flex-col
+        border-r
+        border-slate-200
+        bg-white
 
-      {/* ================= HEADER ================= */}
+        dark:border-slate-800
+        dark:bg-slate-900
+      "
+    >
 
-      <div className="flex-shrink-0 border-b border-slate-800">
+      {/* HEADER */}
 
-        <div className="p-5">
+      <div
+        className="
+          shrink-0
+          border-b
+          border-slate-200
+          px-5
+          pb-4
+          pt-5
 
-          <div className="flex items-center justify-between">
+          dark:border-slate-800
+        "
+      >
 
-            <div>
+        <div className="flex items-start justify-between gap-3">
 
-              <h2 className="text-2xl font-bold text-white">
-                Documents
-              </h2>
+          <div className="min-w-0">
 
-              <p className="text-slate-400 text-sm mt-1">
-                Manage your knowledge base
-              </p>
+            <div className="flex items-center gap-2">
+
+              <div
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-blue-100
+                  text-blue-600
+
+                  dark:bg-blue-500/10
+                  dark:text-blue-400
+                "
+              >
+                <FileText size={19} />
+              </div>
+
+              <div>
+
+                <h2
+                  className="
+                    text-xl
+                    font-bold
+                    text-slate-900
+                    dark:text-white
+                  "
+                >
+                  Documents
+                </h2>
+
+              </div>
 
             </div>
 
-            <div className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-sm font-semibold">
+            <p
+              className="
+                mt-2
+                text-sm
+                text-slate-500
+                dark:text-slate-400
+              "
+            >
+              Upload and manage your knowledge base
+            </p>
 
-              {documents.length}
+          </div>
 
-            </div>
+          <div
+            className="
+              mt-1
+              flex
+              h-8
+              min-w-8
+              items-center
+              justify-center
+              rounded-full
+              bg-blue-100
+              px-2
+              text-sm
+              font-semibold
+              text-blue-700
 
+              dark:bg-blue-500/10
+              dark:text-blue-400
+            "
+          >
+            {documents.length}
           </div>
 
         </div>
 
       </div>
 
+      {/* SEARCH */}
 
-      {/* ================= SEARCH ================= */}
+      <div className="shrink-0 px-5 pt-4">
 
-      <div className="flex-shrink-0 p-5 pb-3">
+        <div
+          className="
+            flex
+            items-center
+            gap-3
+            rounded-xl
+            border
+            border-slate-200
+            bg-slate-50
+            px-3
+            py-3
+            transition
 
-        <div className="flex items-center bg-slate-800/70 border border-slate-700 rounded-xl px-3 py-3">
+            focus-within:border-blue-400
+            focus-within:ring-2
+            focus-within:ring-blue-500/10
+
+            dark:border-slate-700
+            dark:bg-slate-800
+          "
+        >
 
           <Search
             size={18}
-            className="text-slate-400 flex-shrink-0"
+            className="
+              shrink-0
+              text-slate-400
+            "
           />
 
           <input
             type="text"
-            className="ml-3 w-full bg-transparent outline-none text-white placeholder:text-slate-500"
-            placeholder="Search PDFs..."
+            className="
+              min-w-0
+              w-full
+              bg-transparent
+              text-sm
+              text-slate-800
+              outline-none
+              placeholder:text-slate-400
+
+              dark:text-white
+              dark:placeholder:text-slate-500
+            "
+            placeholder="Search documents..."
             value={search}
             onChange={(e) =>
               setSearch(e.target.value)
@@ -214,10 +332,9 @@ function Sidebar({
 
       </div>
 
+      {/* UPLOAD */}
 
-      {/* ================= UPLOAD ================= */}
-
-      <div className="flex-shrink-0 px-5 pb-4">
+      <div className="shrink-0 px-5 py-4">
 
         <FileUpload
           onUpload={loadDocuments}
@@ -225,29 +342,64 @@ function Sidebar({
 
       </div>
 
+      {/* LIST HEADER */}
 
-      {/* ================= DOCUMENT LIST HEADER ================= */}
+      <div
+        className="
+          flex
+          shrink-0
+          items-center
+          justify-between
+          px-5
+          pb-3
+        "
+      >
 
-      <div className="flex items-center justify-between px-5 pb-3">
+        <div>
 
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <p
+            className="
+              text-xs
+              font-semibold
+              uppercase
+              tracking-wider
+              text-slate-400
+              dark:text-slate-500
+            "
+          >
+            {search
+              ? `${filteredDocuments.length} Results`
+              : `${documents.length} Documents`}
+          </p>
 
-          {search
-            ? `${filteredDocuments.length} results`
-            : `${documents.length} documents`}
-
-        </p>
+        </div>
 
         <button
           type="button"
           onClick={loadDocuments}
-          disabled={loading || deleting}
+          disabled={
+            loading || deleting
+          }
           title="Refresh documents"
-          className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition disabled:opacity-50"
+          className="
+            rounded-lg
+            p-2
+            text-slate-400
+            transition
+
+            hover:bg-slate-100
+            hover:text-blue-600
+
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+
+            dark:hover:bg-slate-800
+            dark:hover:text-blue-400
+          "
         >
 
           <RefreshCw
-            size={16}
+            size={17}
             className={
               loading
                 ? "animate-spin"
@@ -259,21 +411,48 @@ function Sidebar({
 
       </div>
 
+      {/* DOCUMENT LIST */}
 
-      {/* ================= DOCUMENTS ================= */}
-
-      <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-5 space-y-3">
+      <div
+        className="
+          min-h-0
+          flex-1
+          overflow-y-auto
+          px-5
+          pb-5
+          space-y-3
+        "
+      >
 
         {loading ? (
 
-          <div className="flex flex-col items-center justify-center text-center mt-16">
+          <div
+            className="
+              mt-16
+              flex
+              flex-col
+              items-center
+              justify-center
+              text-center
+            "
+          >
 
             <RefreshCw
               size={28}
-              className="text-blue-400 animate-spin mb-4"
+              className="
+                mb-3
+                animate-spin
+                text-blue-500
+              "
             />
 
-            <p className="text-slate-500">
+            <p
+              className="
+                text-sm
+                text-slate-500
+                dark:text-slate-400
+              "
+            >
               Loading documents...
             </p>
 
@@ -281,56 +460,99 @@ function Sidebar({
 
         ) : filteredDocuments.length === 0 ? (
 
-          <div className="flex flex-col items-center justify-center text-center mt-16 text-slate-500">
+          <div
+            className="
+              mt-12
+              flex
+              flex-col
+              items-center
+              justify-center
+              text-center
+            "
+          >
 
-            <Files
-              size={60}
-              className="mb-4 opacity-40"
-            />
+            <div
+              className="
+                mb-4
+                flex
+                h-16
+                w-16
+                items-center
+                justify-center
+                rounded-2xl
+                bg-slate-100
 
-            <h3 className="text-lg font-semibold text-slate-300">
+                dark:bg-slate-800
+              "
+            >
+
+              <Files
+                size={30}
+                className="
+                  text-slate-400
+                "
+              />
+
+            </div>
+
+            <h3
+              className="
+                text-base
+                font-semibold
+                text-slate-700
+                dark:text-slate-300
+              "
+            >
               {search
                 ? "No matching documents"
-                : "No Documents"}
+                : "No documents yet"}
             </h3>
 
-            <p className="text-sm mt-2">
-
+            <p
+              className="
+                mt-2
+                max-w-[230px]
+                text-sm
+                leading-6
+                text-slate-500
+                dark:text-slate-400
+              "
+            >
               {search
-                ? "Try a different search."
-                : "Upload your first PDF to start chatting."}
-
+                ? "Try searching with a different name."
+                : "Upload your first PDF to start asking questions."}
             </p>
 
           </div>
 
         ) : (
 
-          filteredDocuments.map((doc) => (
+          filteredDocuments.map(
+            (doc) => (
 
-            <DocumentCard
-              key={doc.filename}
-              document={doc}
-              selected={
-                selectedDocument ===
-                doc.filename
-              }
-              onSelect={
-                setSelectedDocument
-              }
-              onDelete={
-                deleteDocument
-              }
-            />
+              <DocumentCard
+                key={doc.filename}
+                document={doc}
+                selected={
+                  selectedDocument ===
+                  doc.filename
+                }
+                onSelect={
+                  setSelectedDocument
+                }
+                onDelete={
+                  deleteDocument
+                }
+              />
 
-          ))
+            )
+          )
 
         )}
 
       </div>
 
     </aside>
-
   );
 }
 

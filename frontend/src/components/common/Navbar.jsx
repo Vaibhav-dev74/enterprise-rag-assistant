@@ -1,4 +1,8 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 
 import {
   BrainCircuit,
@@ -21,8 +25,7 @@ import {
 
 function Navbar() {
 
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
   const {
     dark,
@@ -32,15 +35,16 @@ function Navbar() {
   const [open, setOpen] =
     useState(false);
 
+  const dropdownRef =
+    useRef(null);
+
   const user = (() => {
 
     try {
 
       return (
         JSON.parse(
-          localStorage.getItem(
-            "user"
-          )
+          localStorage.getItem("user")
         ) || {}
       );
 
@@ -52,15 +56,46 @@ function Navbar() {
 
   })();
 
+  // Close dropdown when clicking outside
+
+  useEffect(() => {
+
+    const handleClickOutside = (event) => {
+
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(
+          event.target
+        )
+      ) {
+
+        setOpen(false);
+
+      }
+
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () => {
+
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+
+    };
+
+  }, []);
+
   const logout = () => {
 
-    localStorage.removeItem(
-      "token"
-    );
+    localStorage.removeItem("token");
 
-    localStorage.removeItem(
-      "user"
-    );
+    localStorage.removeItem("user");
 
     setOpen(false);
 
@@ -70,6 +105,7 @@ function Navbar() {
         replace: true,
       }
     );
+
   };
 
   const goTo = (path) => {
@@ -77,6 +113,7 @@ function Navbar() {
     setOpen(false);
 
     navigate(path);
+
   };
 
   return (
@@ -106,7 +143,7 @@ function Navbar() {
 
       {/* LEFT */}
 
-      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 items-center gap-3">
 
         <button
           type="button"
@@ -137,13 +174,11 @@ function Navbar() {
           <h1
             className="
               truncate
-              text-base
+              text-lg
               font-bold
-              leading-tight
               text-slate-900
               dark:text-white
-              sm:text-lg
-              lg:text-xl
+              sm:text-xl
             "
           >
             Enterprise RAG
@@ -152,12 +187,10 @@ function Navbar() {
           <p
             className="
               hidden
-              truncate
-              text-[10px]
+              text-xs
               text-slate-500
               dark:text-slate-400
               sm:block
-              lg:text-xs
             "
           >
             AI Document Assistant
@@ -191,9 +224,16 @@ function Navbar() {
           "
         />
 
-        <p className="text-sm font-medium text-green-500">
+        <span
+          className="
+            text-sm
+            font-medium
+            text-green-600
+            dark:text-green-400
+          "
+        >
           AI Ready
-        </p>
+        </span>
 
       </div>
 
@@ -209,9 +249,10 @@ function Navbar() {
         "
       >
 
+        {/* NOTIFICATIONS */}
+
         <button
           type="button"
-          title="Notifications"
           onClick={() =>
             goTo("/notifications")
           }
@@ -232,26 +273,6 @@ function Navbar() {
               dark:text-slate-300
             "
           />
-
-          <span
-            className="
-              absolute
-              -right-0.5
-              -top-0.5
-              flex
-              h-[15px]
-              min-w-[15px]
-              items-center
-              justify-center
-              rounded-full
-              bg-red-500
-              px-1
-              text-[9px]
-              text-white
-            "
-          >
-            0
-          </span>
 
         </button>
 
@@ -296,7 +317,6 @@ function Navbar() {
 
         <button
           type="button"
-          title="Settings"
           onClick={() =>
             goTo("/settings")
           }
@@ -323,230 +343,296 @@ function Navbar() {
 
         {/* USER */}
 
-        <button
-          type="button"
-          onClick={() =>
-            setOpen(
-              (prev) => !prev
-            )
-          }
-          className="
-            flex
-            max-w-[150px]
-            items-center
-            gap-2
-            rounded-xl
-            px-1.5
-            py-1.5
-            transition
-            hover:bg-slate-100
-            dark:hover:bg-slate-800
-            sm:px-2
-          "
-        >
-
-          <img
-            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-              user?.name || "User"
-            )}&background=2563eb&color=fff`}
-            alt="Profile"
-            className="
-              h-9
-              w-9
-              shrink-0
-              rounded-full
-              border-2
-              border-blue-500
-              sm:h-10
-              sm:w-10
-            "
-          />
-
-          <div className="hidden min-w-0 text-left lg:block">
-
-            <p
-              className="
-                truncate
-                text-sm
-                font-semibold
-                text-slate-900
-                dark:text-white
-              "
-            >
-              {user?.name || "User"}
-            </p>
-
-            <p
-              className="
-                max-w-[100px]
-                truncate
-                text-xs
-                text-slate-500
-                dark:text-slate-400
-              "
-            >
-              {user?.email || ""}
-            </p>
-
-          </div>
-
-          <ChevronDown
-            size={17}
-            className={`
-              hidden
-              text-slate-500
-              transition-transform
-              dark:text-slate-400
-              sm:block
-              ${
-                open
-                  ? "rotate-180"
-                  : ""
-              }
-            `}
-          />
-
-        </button>
-
-      </div>
-
-      {/* USER DROPDOWN */}
-
-      {open && (
-
         <div
-          className="
-            absolute
-            right-3
-            top-[68px]
-            z-[100]
-            w-[250px]
-            overflow-hidden
-            rounded-xl
-            border
-            border-slate-200
-            bg-white
-            shadow-2xl
-            dark:border-slate-700
-            dark:bg-slate-900
-            sm:right-5
-          "
+          ref={dropdownRef}
+          className="relative"
         >
 
-          <div
+          <button
+            type="button"
+            onClick={() =>
+              setOpen(
+                (prev) => !prev
+              )
+            }
             className="
-              border-b
-              border-slate-200
-              px-5
-              py-4
-              dark:border-slate-700
+              flex
+              items-center
+              gap-2
+              rounded-xl
+              border
+              border-transparent
+              px-1.5
+              py-1.5
+              transition
+
+              hover:bg-slate-100
+              hover:border-slate-200
+
+              dark:hover:bg-slate-800
+              dark:hover:border-slate-700
+
+              sm:px-2
             "
           >
 
-            <p
+            <img
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                user?.name || "User"
+              )}&background=2563eb&color=fff`}
+              alt="Profile"
               className="
-                truncate
-                font-semibold
-                text-slate-900
-                dark:text-white
+                h-10
+                w-10
+                shrink-0
+                rounded-full
+                border-2
+                border-blue-500
+              "
+            />
+
+            {/* Show user details */}
+
+            <div
+              className="
+                hidden
+                min-w-0
+                text-left
+                lg:block
               "
             >
-              {user?.name || "User"}
-            </p>
 
-            <p
-              className="
-                truncate
-                text-sm
+              <p
+                className="
+                  max-w-[120px]
+                  truncate
+                  text-sm
+                  font-semibold
+                  text-slate-800
+                  dark:text-white
+                "
+              >
+                {user?.name || "User"}
+              </p>
+
+              <p
+                className="
+                  max-w-[120px]
+                  truncate
+                  text-xs
+                  text-slate-500
+                  dark:text-slate-400
+                "
+              >
+                Account
+              </p>
+
+            </div>
+
+            <ChevronDown
+              size={17}
+              className={`
+                hidden
                 text-slate-500
+                transition-transform
                 dark:text-slate-400
+                sm:block
+                ${
+                  open
+                    ? "rotate-180"
+                    : ""
+                }
+              `}
+            />
+
+          </button>
+
+          {/* USER DROPDOWN */}
+
+          {open && (
+
+            <div
+              className="
+                absolute
+                right-0
+                top-[58px]
+                z-[100]
+                w-[260px]
+                overflow-hidden
+                rounded-2xl
+                border
+                border-slate-200
+                bg-white
+                shadow-2xl
+
+                dark:border-slate-700
+                dark:bg-slate-900
               "
             >
-              {user?.email || ""}
-            </p>
 
-          </div>
+              {/* USER INFO */}
 
-          <button
-            type="button"
-            onClick={() =>
-              goTo("/profile")
-            }
-            className="
-              flex
-              w-full
-              items-center
-              gap-3
-              px-5
-              py-3
-              text-slate-600
-              transition
-              hover:bg-slate-100
-              dark:text-slate-300
-              dark:hover:bg-slate-800
-            "
-          >
+              <div
+                className="
+                  border-b
+                  border-slate-200
+                  bg-slate-50
+                  px-5
+                  py-4
 
-            <User size={18} />
+                  dark:border-slate-700
+                  dark:bg-slate-800/50
+                "
+              >
 
-            Profile
+                <div className="flex items-center gap-3">
 
-          </button>
+                  <img
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user?.name || "User"
+                    )}&background=2563eb&color=fff`}
+                    alt="Profile"
+                    className="
+                      h-11
+                      w-11
+                      rounded-full
+                    "
+                  />
 
-          <button
-            type="button"
-            onClick={() =>
-              goTo("/settings")
-            }
-            className="
-              flex
-              w-full
-              items-center
-              gap-3
-              px-5
-              py-3
-              text-slate-600
-              transition
-              hover:bg-slate-100
-              dark:text-slate-300
-              dark:hover:bg-slate-800
-            "
-          >
+                  <div className="min-w-0">
 
-            <Settings size={18} />
+                    <p
+                      className="
+                        truncate
+                        font-semibold
+                        text-slate-900
+                        dark:text-white
+                      "
+                    >
+                      {user?.name || "User"}
+                    </p>
 
-            Settings
+                    <p
+                      className="
+                        truncate
+                        text-xs
+                        text-slate-500
+                        dark:text-slate-400
+                      "
+                    >
+                      {user?.email ||
+                        "Enterprise RAG User"}
+                    </p>
 
-          </button>
+                  </div>
 
-          <button
-            type="button"
-            onClick={logout}
-            className="
-              flex
-              w-full
-              items-center
-              gap-3
-              border-t
-              border-slate-200
-              px-5
-              py-4
-              text-red-500
-              transition
-              hover:bg-red-500/10
-              dark:border-slate-700
-            "
-          >
+                </div>
 
-            <LogOut size={18} />
+              </div>
 
-            Logout
+              {/* PROFILE */}
 
-          </button>
+              <button
+                type="button"
+                onClick={() =>
+                  goTo("/profile")
+                }
+                className="
+                  flex
+                  w-full
+                  items-center
+                  gap-3
+                  px-5
+                  py-3.5
+                  text-left
+                  text-slate-700
+                  transition
+                  hover:bg-slate-100
+
+                  dark:text-slate-300
+                  dark:hover:bg-slate-800
+                "
+              >
+
+                <User size={18} />
+
+                <span>
+                  My Profile
+                </span>
+
+              </button>
+
+              {/* SETTINGS */}
+
+              <button
+                type="button"
+                onClick={() =>
+                  goTo("/settings")
+                }
+                className="
+                  flex
+                  w-full
+                  items-center
+                  gap-3
+                  px-5
+                  py-3.5
+                  text-left
+                  text-slate-700
+                  transition
+                  hover:bg-slate-100
+
+                  dark:text-slate-300
+                  dark:hover:bg-slate-800
+                "
+              >
+
+                <Settings size={18} />
+
+                <span>
+                  Settings
+                </span>
+
+              </button>
+
+              {/* LOGOUT */}
+
+              <button
+                type="button"
+                onClick={logout}
+                className="
+                  flex
+                  w-full
+                  items-center
+                  gap-3
+                  border-t
+                  border-slate-200
+                  px-5
+                  py-4
+                  text-left
+                  text-red-500
+                  transition
+                  hover:bg-red-50
+
+                  dark:border-slate-700
+                  dark:hover:bg-red-500/10
+                "
+              >
+
+                <LogOut size={18} />
+
+                <span>
+                  Logout
+                </span>
+
+              </button>
+
+            </div>
+
+          )}
 
         </div>
 
-      )}
+      </div>
 
     </header>
 
