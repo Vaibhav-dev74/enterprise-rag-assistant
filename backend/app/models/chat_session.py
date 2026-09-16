@@ -1,22 +1,22 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+)
+
 from sqlalchemy.sql import func
 
 from app.database.database import Base
 
 
 class ChatSession(Base):
+
     __tablename__ = "chat_sessions"
 
     id = Column(
         Integer,
         primary_key=True,
-        index=True
-    )
-
-    user_id = Column(
-        Integer,
-        ForeignKey("users.id"),
-        nullable=False,
         index=True
     )
 
@@ -27,10 +27,16 @@ class ChatSession(Base):
         index=True
     )
 
+    user_id = Column(
+        Integer,
+        nullable=False,
+        index=True
+    )
+
     title = Column(
         String,
         nullable=False,
-        default="New Conversation"
+        default="New Chat"
     )
 
     document = Column(

@@ -1,10 +1,11 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
 
 from app.database.database import Base
 
 
 class ChatHistory(Base):
+
     __tablename__ = "chat_history"
 
     id = Column(
@@ -15,7 +16,6 @@ class ChatHistory(Base):
 
     user_id = Column(
         Integer,
-        ForeignKey("users.id"),
         nullable=False,
         index=True
     )
