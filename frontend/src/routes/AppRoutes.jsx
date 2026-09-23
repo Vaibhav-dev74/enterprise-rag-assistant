@@ -1,15 +1,14 @@
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
+import VerifyEmail from "../pages/VerifyEmail";
 
 import Dashboard from "../pages/Dashboard";
 import Chats from "../pages/Chats";
-
+import Documents from "../pages/Documents";
 import Notifications from "../pages/Notifications";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
@@ -17,40 +16,24 @@ import Notfound from "../pages/Notfound";
 
 import ProtectedRoute from "./ProtectedRoute";
 
-
-function AppRoutes() {
-
+export function AppRoutes() {
   return (
-
     <Routes>
+      {/* PUBLIC AUTH ROUTES */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
 
-      {/* PUBLIC */}
-
-      <Route
-        path="/login"
-        element={<Login />}
-      />
-
-      <Route
-        path="/register"
-        element={<Register />}
-      />
-
-
-      {/* PROTECTED */}
-
+      {/* PROTECTED WORKSPACE ROUTES */}
       <Route
         path="/"
         element={
           <ProtectedRoute>
-            <Navigate
-              to="/dashboard"
-              replace
-            />
+            <Navigate to="/dashboard" replace />
           </ProtectedRoute>
         }
       />
-
 
       <Route
         path="/dashboard"
@@ -61,7 +44,6 @@ function AppRoutes() {
         }
       />
 
-
       <Route
         path="/chat"
         element={
@@ -71,6 +53,23 @@ function AppRoutes() {
         }
       />
 
+      <Route
+        path="/chats"
+        element={
+          <ProtectedRoute>
+            <Chats />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/documents"
+        element={
+          <ProtectedRoute>
+            <Documents />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/notifications"
@@ -81,7 +80,6 @@ function AppRoutes() {
         }
       />
 
-
       <Route
         path="/profile"
         element={
@@ -90,7 +88,6 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
 
       <Route
         path="/settings"
@@ -101,19 +98,10 @@ function AppRoutes() {
         }
       />
 
-
-      {/* 404 */}
-
-      <Route
-        path="*"
-        element={<Notfound />}
-      />
-
+      {/* 404 NOT FOUND */}
+      <Route path="*" element={<Notfound />} />
     </Routes>
-
   );
-
 }
-
 
 export default AppRoutes;

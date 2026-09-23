@@ -67,7 +67,7 @@ function DocumentCard({
       className={`group relative overflow-hidden rounded-2xl border cursor-pointer transition-all duration-300 ${
         selected
           ? "border-blue-500 bg-gradient-to-r from-blue-500/15 to-indigo-500/10 shadow-lg shadow-blue-500/20"
-          : "border-slate-700 bg-slate-800/80 hover:border-slate-500 hover:bg-slate-800"
+          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/80 dark:hover:border-slate-500 dark:hover:bg-slate-800"
       }`}
     >
       {/* Selected indicator */}
@@ -97,8 +97,8 @@ function DocumentCard({
                 size={24}
                 className={
                   selected
-                    ? "text-blue-400"
-                    : "text-red-400"
+                    ? "text-blue-500 dark:text-blue-400"
+                    : "text-red-500 dark:text-red-400"
                 }
               />
             </div>
@@ -107,12 +107,12 @@ function DocumentCard({
 
               <h3
                 title={filename}
-                className="font-semibold text-white truncate max-w-[180px]"
+                className="font-semibold text-slate-900 dark:text-white truncate max-w-[180px]"
               >
                 {filename}
               </h3>
 
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 PDF Document
               </p>
 
@@ -127,7 +127,7 @@ function DocumentCard({
             {selected && (
               <CheckCircle2
                 size={19}
-                className="text-blue-400"
+                className="text-blue-500 dark:text-blue-400"
               />
             )}
 
@@ -138,11 +138,11 @@ function DocumentCard({
                 e.stopPropagation();
                 onDelete(filename);
               }}
-              className="opacity-0 group-hover:opacity-100 transition rounded-lg p-2 hover:bg-red-500/20"
+              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition rounded-lg p-2 hover:bg-red-50 dark:hover:bg-red-500/20"
             >
               <Trash2
                 size={18}
-                className="text-slate-400 hover:text-red-400"
+                className="text-slate-400 hover:text-red-500"
               />
             </button>
 

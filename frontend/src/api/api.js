@@ -7,13 +7,24 @@ const api = axios.create({
   },
 });
 
-// Automatically attach JWT token
+// Automatically attach JWT token and User ID
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        if (user?.id) {
+          config.headers["X-User-ID"] = user.id;
+        }
+      }
+    } catch {
+      // ignore JSON parse error
     }
 
     return config;
@@ -32,10 +43,10 @@ api.interceptors.response.use(
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      // Don't redirect if already on login/register
+      // Don't redirect if already on public auth pages
       const path = window.location.pathname;
 
-      if (path !== "/login" && path !== "/register") {
+      if (path !== "/login" && path !== "/register" && path !== "/forgot-password") {
         window.location.href = "/login";
       }
     }

@@ -82,11 +82,23 @@ function PDFViewer({
 
   }, [selectedDocument]);
 
+  const user = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+
   const pdfUrl =
     selectedDocument
-      ? `http://127.0.0.1:8000/uploads/${encodeURIComponent(
-          selectedDocument
-        )}`
+      ? user?.id
+        ? `http://127.0.0.1:8000/uploads/${user.id}/${encodeURIComponent(
+            selectedDocument
+          )}`
+        : `http://127.0.0.1:8000/uploads/${encodeURIComponent(
+            selectedDocument
+          )}`
       : null;
 
   return (

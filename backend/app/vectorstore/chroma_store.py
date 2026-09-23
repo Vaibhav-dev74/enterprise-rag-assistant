@@ -41,22 +41,32 @@ def store_chunks(chunks):
 # Delete Document
 # ----------------------------------------
 
-def delete_document_vectors(filename):
+def delete_document_vectors(filename, user_id=None):
     """
     Delete all ChromaDB vectors belonging
-    to the specified PDF filename.
+    to the specified PDF filename and user.
     """
 
     try:
 
-        vector_db.delete(
-            where={
+        if user_id:
+            where_filter = {
+                "$and": [
+                    {"source": filename},
+                    {"user_id": str(user_id)}
+                ]
+            }
+        else:
+            where_filter = {
                 "source": filename
             }
+
+        vector_db.delete(
+            where=where_filter
         )
 
         print(
-            f"Deleted vectors for: {filename}"
+            f"Deleted vectors for: {filename} (user_id={user_id})"
         )
 
     except Exception as e:

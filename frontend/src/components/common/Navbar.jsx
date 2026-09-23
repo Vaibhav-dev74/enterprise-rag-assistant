@@ -13,6 +13,8 @@ import {
   LogOut,
   ChevronDown,
   User,
+  Menu,
+  FileText,
 } from "lucide-react";
 
 import {
@@ -23,7 +25,9 @@ import {
   useTheme,
 } from "../../context/ThemeContext";
 
-function Navbar() {
+import NotificationBell from "./NotificationBell";
+
+function Navbar({ onToggleSidebar, onToggleDocs, showDocsToggle = false }) {
 
   const navigate = useNavigate();
 
@@ -143,7 +147,19 @@ function Navbar() {
 
       {/* LEFT */}
 
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+
+        {/* Mobile Navigation Sidebar Trigger */}
+        {onToggleSidebar && (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            title="Open Navigation Menu"
+            className="rounded-xl p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition lg:hidden cursor-pointer"
+          >
+            <Menu size={22} />
+          </button>
+        )}
 
         <button
           type="button"
@@ -174,7 +190,7 @@ function Navbar() {
           <h1
             className="
               truncate
-              text-lg
+              text-base
               font-bold
               text-slate-900
               dark:text-white
@@ -197,6 +213,19 @@ function Navbar() {
           </p>
 
         </div>
+
+        {/* Mobile Document Selector Button */}
+        {showDocsToggle && (
+          <button
+            type="button"
+            onClick={onToggleDocs}
+            title="Browse Documents"
+            className="md:hidden flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer shrink-0"
+          >
+            <FileText size={14} className="text-blue-500" />
+            <span>Docs</span>
+          </button>
+        )}
 
       </div>
 
@@ -250,31 +279,7 @@ function Navbar() {
       >
 
         {/* NOTIFICATIONS */}
-
-        <button
-          type="button"
-          onClick={() =>
-            goTo("/notifications")
-          }
-          className="
-            relative
-            rounded-lg
-            p-2
-            transition
-            hover:bg-slate-100
-            dark:hover:bg-slate-800
-          "
-        >
-
-          <Bell
-            size={21}
-            className="
-              text-slate-600
-              dark:text-slate-300
-            "
-          />
-
-        </button>
+        <NotificationBell />
 
         {/* THEME */}
 
@@ -458,6 +463,7 @@ function Navbar() {
                 top-[58px]
                 z-[100]
                 w-[260px]
+                max-w-[calc(100vw-1.5rem)]
                 overflow-hidden
                 rounded-2xl
                 border

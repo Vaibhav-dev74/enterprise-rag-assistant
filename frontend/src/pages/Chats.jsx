@@ -1,8 +1,4 @@
-import {
-  useEffect,
-  useState,
-} from "react";
-
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   MessageSquare,
@@ -11,893 +7,449 @@ import {
   Clock,
   RefreshCw,
   Search,
+  Edit2,
+  ArrowRight,
+  AlertTriangle,
 } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 
-import {
-  useNavigate,
-} from "react-router-dom";
-
+import Navbar from "../components/common/Navbar";
+import DashboardSidebar from "../components/dashboard/DashboardSidebar";
 import api from "../api/api";
-
+import { useAuth } from "../context/AuthContext";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
 
 function Chats() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [active, setActive] = useState("Chats");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navigate =
-    useNavigate();
+  // Rename modal
+  const [renameSession, setRenameSession] = useState(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [renaming, setRenaming] = useState(false);
 
+  // Delete modal
+  const [sessionToDelete, setSessionToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const [sessions, setSessions] =
-    useState([]);
-
-
-  const [loading, setLoading] =
-    useState(true);
-
-
-  const [search, setSearch] =
-    useState("");
-
-
-  const [deleting, setDeleting] =
-    useState(null);
-
-
-  /* =============================================== */
-  /* GET CURRENT USER                                 */
-  /* =============================================== */
-
-  const getUser = () => {
-
-    try {
-
-      return JSON.parse(
-        localStorage.getItem("user") || "{}"
-      );
-
-    } catch {
-
-      return {};
-
-    }
-
-  };
-
-
-  /* =============================================== */
-  /* LOAD CONVERSATIONS                               */
-  /* =============================================== */
+  // Clear all modal
+  const [clearAllModal, setClearAllModal] = useState(false);
+  const [clearingAll, setClearingAll] = useState(false);
 
   const loadChats = async () => {
-
-    const user =
-      getUser();
-
-
     if (!user?.id) {
-
       setLoading(false);
-
       return;
-
     }
-
 
     try {
-
       setLoading(true);
-
-
-      const res =
-        await api.get(
-          `/history/user/${user.id}`
-        );
-
-
-      setSessions(
-        res.data.sessions || []
-      );
-
-
+      const res = await api.get(`/history/user/${user.id}`);
+      setSessions(res.data.sessions || []);
     } catch (err) {
-
-      console.error(
-        "Load chats error:",
-        err
-      );
-
-
-      toast.error(
-        "Failed to load conversations."
-      );
-
-
+      console.error("Load chats error:", err);
+      toast.error("Failed to load conversations.");
     } finally {
-
       setLoading(false);
-
     }
-
   };
-
 
   useEffect(() => {
-
     loadChats();
-
-
-    /* Listen for new chat messages */
-
-    const handleUpdate = () => {
-
-      loadChats();
-
-    };
-
-
-    window.addEventListener(
-      "chat-updated",
-      handleUpdate
-    );
-
-
-    return () => {
-
-      window.removeEventListener(
-        "chat-updated",
-        handleUpdate
-      );
-
-    };
-
-  }, []);
-
-
-  /* =============================================== */
-  /* NEW CHAT                                         */
-  /* =============================================== */
+    const handleUpdate = () => loadChats();
+    window.addEventListener("chat-updated", handleUpdate);
+    return () => window.removeEventListener("chat-updated", handleUpdate);
+  }, [user?.id]);
 
   const createNewChat = () => {
-
-    const newSessionId =
-      crypto.randomUUID();
-
-
-    navigate(
-      `/dashboard?session=${newSessionId}`
-    );
-
+    const newSessionId = crypto.randomUUID();
+    navigate(`/dashboard?session=${newSessionId}`);
   };
 
-
-  /* =============================================== */
-  /* OPEN CHAT                                        */
-  /* =============================================== */
-
-  const openChat = (
-    session
-  ) => {
-
-    navigate(
-      `/dashboard?session=${session.session_id}`
-    );
-
+  const openChat = (session) => {
+    navigate(`/dashboard?session=${session.session_id}`);
   };
 
-
-  /* =============================================== */
-  /* DELETE CHAT                                      */
-  /* =============================================== */
-
-  const deleteChat = async (
-    event,
-    session
-  ) => {
-
-    event.stopPropagation();
-
-
-    const confirmed =
-      window.confirm(
-        `Delete "${session.title}"?`
-      );
-
-
-    if (!confirmed) {
-
-      return;
-
-    }
-
+  const handleRename = async (e) => {
+    e.preventDefault();
+    if (!renameSession || !newTitle.trim()) return;
 
     try {
-
-      setDeleting(
-        session.session_id
-      );
-
-
-      await api.delete(
-        `/history/session/${session.session_id}`
-      );
-
-
+      setRenaming(true);
+      await api.put(`/history/session/${renameSession.session_id}/title`, {
+        title: newTitle.trim(),
+      });
       setSessions((prev) =>
-        prev.filter(
-          (item) =>
-            item.session_id !==
-            session.session_id
+        prev.map((s) =>
+          s.session_id === renameSession.session_id
+            ? { ...s, title: newTitle.trim() }
+            : s
         )
       );
-
-
-      toast.success(
-        "Conversation deleted."
-      );
-
-
+      setRenameSession(null);
+      toast.success("Conversation renamed successfully!");
+      window.dispatchEvent(new Event("chat-updated"));
     } catch (err) {
-
-      console.error(
-        "Delete chat error:",
-        err
-      );
-
-
-      toast.error(
-        "Failed to delete conversation."
-      );
-
-
+      console.error("Rename error:", err);
+      toast.error("Failed to rename conversation.");
     } finally {
-
-      setDeleting(null);
-
+      setRenaming(false);
     }
-
   };
 
-
-  /* =============================================== */
-  /* FORMAT DATE                                      */
-  /* =============================================== */
-
-  const formatDate = (
-    dateValue
-  ) => {
-
-    if (!dateValue) {
-
-      return "";
-
+  const handleDelete = async () => {
+    if (!sessionToDelete) return;
+    try {
+      setDeleting(true);
+      await api.delete(`/history/session/${sessionToDelete.session_id}`);
+      setSessions((prev) =>
+        prev.filter((s) => s.session_id !== sessionToDelete.session_id)
+      );
+      setSessionToDelete(null);
+      toast.success("Conversation deleted.");
+      window.dispatchEvent(new Event("chat-updated"));
+    } catch (err) {
+      toast.error("Failed to delete conversation.");
+    } finally {
+      setDeleting(false);
     }
-
-
-    const date =
-      new Date(dateValue);
-
-
-    return date.toLocaleString(
-      undefined,
-      {
-
-        month: "short",
-
-        day: "numeric",
-
-        hour: "numeric",
-
-        minute: "2-digit",
-
-      }
-    );
-
   };
 
+  const handleClearAll = async () => {
+    if (!user?.id) return;
+    try {
+      setClearingAll(true);
+      await api.delete(`/history/user/${user.id}/clear`);
+      setSessions([]);
+      setClearAllModal(false);
+      toast.success("All conversation history cleared.");
+      window.dispatchEvent(new Event("chat-updated"));
+    } catch (err) {
+      toast.error("Failed to clear chat history.");
+    } finally {
+      setClearingAll(false);
+    }
+  };
 
-  /* =============================================== */
-  /* FILTER                                           */
-  /* =============================================== */
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "Recently";
+    const date = new Date(dateValue);
+    return date.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
 
-  const filteredSessions =
-    sessions.filter(
-      (session) => {
-
-        const query =
-          search.toLowerCase();
-
-
-        return (
-
-          session.title
-            ?.toLowerCase()
-            .includes(query) ||
-
-          session.document
-            ?.toLowerCase()
-            .includes(query)
-
-        );
-
-      }
+  const filteredSessions = sessions.filter((session) => {
+    const query = search.toLowerCase();
+    return (
+      session.title?.toLowerCase().includes(query) ||
+      session.document?.toLowerCase().includes(query)
     );
-
-
-  /* =============================================== */
-  /* UI                                               */
-  /* =============================================== */
+  });
 
   return (
+    <div className="h-dvh w-full overflow-hidden bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white flex flex-col">
+      <Navbar onToggleSidebar={() => setMobileMenuOpen((prev) => !prev)} />
 
-    <div
-      className="
-        min-h-screen
-        bg-slate-50
-        text-slate-900
-        dark:bg-slate-950
-        dark:text-white
-      "
-    >
+      <div className="flex h-[calc(100dvh-64px)] min-h-0 w-full overflow-hidden">
+        {/* DESKTOP SIDEBAR */}
+        <aside className="hidden lg:block h-full w-[220px] shrink-0 border-r border-slate-200 dark:border-slate-800 xl:w-[240px]">
+          <DashboardSidebar
+            active={active}
+            setActive={setActive}
+            mobileOpen={mobileMenuOpen}
+            setMobileOpen={setMobileMenuOpen}
+          />
+        </aside>
 
-      {/* HEADER */}
-
-      <div
-        className="
-          border-b
-          border-slate-200
-          bg-white
-          dark:border-slate-800
-          dark:bg-slate-900
-        "
-      >
-
-        <div
-          className="
-            mx-auto
-            flex
-            max-w-6xl
-            items-center
-            justify-between
-            gap-4
-            px-4
-            py-5
-            sm:px-6
-          "
-        >
-
-          <div>
-
-            <div className="flex items-center gap-3">
-
-              <div
-                className="
-                  rounded-xl
-                  bg-blue-500/10
-                  p-2.5
-                  text-blue-600
-                  dark:text-blue-400
-                "
-              >
-
-                <MessageSquare
-                  size={24}
-                />
-
-              </div>
-
-
-              <div>
-
-                <h1
-                  className="
-                    text-xl
-                    font-bold
-                    sm:text-2xl
-                  "
-                >
-                  Conversations
-                </h1>
-
-
-                <p
-                  className="
-                    mt-0.5
-                    text-sm
-                    text-slate-500
-                    dark:text-slate-400
-                  "
-                >
-                  Your saved AI conversations
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <button
-            type="button"
-            onClick={createNewChat}
-            className="
-              flex
-              items-center
-              gap-2
-              rounded-xl
-              bg-blue-600
-              px-4
-              py-2.5
-              font-medium
-              text-white
-              transition
-              hover:bg-blue-700
-            "
-          >
-
-            <Plus size={19} />
-
-            <span className="hidden sm:inline">
-              New Chat
-            </span>
-
-          </button>
-
+        {/* MOBILE SIDEBAR DRAWER */}
+        <div className="lg:hidden">
+          <DashboardSidebar
+            active={active}
+            setActive={setActive}
+            mobileOpen={mobileMenuOpen}
+            setMobileOpen={setMobileMenuOpen}
+          />
         </div>
 
-      </div>
+        {/* MAIN CHAT LIST */}
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-5xl space-y-6 pb-12">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600 dark:text-blue-400">
+                  <MessageSquare size={24} />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    Conversations
+                  </h1>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {sessions.length} saved dialogue{sessions.length === 1 ? "" : "s"} &bull; RAG history
+                  </p>
+                </div>
+              </div>
 
-
-      {/* CONTENT */}
-
-      <main
-        className="
-          mx-auto
-          w-full
-          max-w-6xl
-          px-4
-          py-6
-          sm:px-6
-        "
-      >
-
-
-        {/* SEARCH */}
-
-        <div
-          className="
-            mb-6
-            flex
-            flex-col
-            gap-3
-            sm:flex-row
-            sm:items-center
-          "
-        >
-
-          <div
-            className="
-              flex
-              flex-1
-              items-center
-              rounded-xl
-              border
-              border-slate-200
-              bg-white
-              px-4
-              py-3
-              dark:border-slate-700
-              dark:bg-slate-900
-            "
-          >
-
-            <Search
-              size={19}
-              className="
-                shrink-0
-                text-slate-400
-              "
-            />
-
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              value={search}
-              onChange={(e) =>
-                setSearch(
-                  e.target.value
-                )
-              }
-              className="
-                ml-3
-                w-full
-                bg-transparent
-                text-sm
-                outline-none
-                placeholder:text-slate-400
-              "
-            />
-
-          </div>
-
-
-          <button
-            type="button"
-            onClick={loadChats}
-            disabled={loading}
-            title="Refresh conversations"
-            className="
-              flex
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              border
-              border-slate-200
-              bg-white
-              px-4
-              py-3
-              text-slate-600
-              transition
-              hover:bg-slate-100
-              disabled:opacity-50
-              dark:border-slate-700
-              dark:bg-slate-900
-              dark:text-slate-300
-              dark:hover:bg-slate-800
-            "
-          >
-
-            <RefreshCw
-              size={19}
-              className={
-                loading
-                  ? "animate-spin"
-                  : ""
-              }
-            />
-
-            <span className="hidden sm:inline">
-              Refresh
-            </span>
-
-          </button>
-
-        </div>
-
-
-        {/* COUNT */}
-
-        {!loading && (
-
-          <p
-            className="
-              mb-4
-              text-sm
-              text-slate-500
-              dark:text-slate-400
-            "
-          >
-
-            {filteredSessions.length}
-            {" "}
-            conversation
-            {filteredSessions.length !== 1
-              ? "s"
-              : ""}
-
-          </p>
-
-        )}
-
-
-        {/* LOADING */}
-
-        {loading ? (
-
-          <div
-            className="
-              flex
-              min-h-[300px]
-              items-center
-              justify-center
-            "
-          >
-
-            <RefreshCw
-              size={30}
-              className="
-                animate-spin
-                text-blue-500
-              "
-            />
-
-          </div>
-
-        ) : filteredSessions.length === 0 ? (
-
-          /* EMPTY STATE */
-
-          <div
-            className="
-              flex
-              min-h-[350px]
-              flex-col
-              items-center
-              justify-center
-              rounded-2xl
-              border
-              border-dashed
-              border-slate-300
-              bg-white
-              p-8
-              text-center
-              dark:border-slate-700
-              dark:bg-slate-900
-            "
-          >
-
-            <div
-              className="
-                mb-4
-                rounded-full
-                bg-blue-500/10
-                p-5
-                text-blue-500
-              "
-            >
-
-              <MessageSquare
-                size={40}
-              />
-
-            </div>
-
-
-            <h2
-              className="
-                text-lg
-                font-semibold
-              "
-            >
-              No conversations yet
-            </h2>
-
-
-            <p
-              className="
-                mt-2
-                max-w-md
-                text-sm
-                text-slate-500
-                dark:text-slate-400
-              "
-            >
-              Start a new conversation and your
-              chat history will appear here.
-            </p>
-
-
-            <button
-              type="button"
-              onClick={createNewChat}
-              className="
-                mt-6
-                flex
-                items-center
-                gap-2
-                rounded-xl
-                bg-blue-600
-                px-5
-                py-3
-                font-medium
-                text-white
-                transition
-                hover:bg-blue-700
-              "
-            >
-
-              <Plus size={19} />
-
-              Start New Chat
-
-            </button>
-
-          </div>
-
-        ) : (
-
-          /* CHAT LIST */
-
-          <div
-            className="
-              grid
-              gap-4
-              sm:grid-cols-2
-              xl:grid-cols-3
-            "
-          >
-
-            {filteredSessions.map(
-              (session) => (
-
-                <article
-                  key={
-                    session.session_id
-                  }
-                  onClick={() =>
-                    openChat(session)
-                  }
-                  className="
-                    group
-                    cursor-pointer
-                    rounded-2xl
-                    border
-                    border-slate-200
-                    bg-white
-                    p-5
-                    transition
-                    hover:-translate-y-0.5
-                    hover:border-blue-400
-                    hover:shadow-lg
-                    dark:border-slate-800
-                    dark:bg-slate-900
-                    dark:hover:border-blue-500
-                  "
-                >
-
-                  <div
-                    className="
-                      flex
-                      items-start
-                      justify-between
-                      gap-3
-                    "
+              <div className="flex flex-wrap items-center gap-2">
+                {sessions.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setClearAllModal(true)}
+                    className="text-red-500 hover:bg-red-500/10"
+                    icon={Trash2}
                   >
+                    Clear All
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadChats}
+                  disabled={loading}
+                  icon={RefreshCw}
+                >
+                  Refresh
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={createNewChat}
+                  icon={Plus}
+                >
+                  New Chat
+                </Button>
+              </div>
+            </div>
 
-                    <div
-                      className="
-                        min-w-0
-                        flex-1
-                      "
+            {/* Search Bar */}
+            <div className="flex items-center gap-3">
+              <div className="relative flex-1 max-w-md">
+                <Search
+                  size={18}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  placeholder="Search past conversations or documents..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Conversations Grid */}
+            {loading ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="h-40 rounded-2xl bg-slate-200/60 dark:bg-slate-800/60 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : filteredSessions.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-12 text-center">
+                <MessageSquare size={40} className="mx-auto text-slate-400 mb-3" />
+                <h3 className="text-base font-semibold text-slate-800 dark:text-white">
+                  No conversations found
+                </h3>
+                <p className="mt-1 text-xs text-slate-400">
+                  {search
+                    ? "Try adjusting your search keywords."
+                    : "Start your first chat session against indexed documents."}
+                </p>
+                <div className="mt-5">
+                  <Button variant="primary" size="md" onClick={createNewChat} icon={Plus}>
+                    Start New Chat
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <AnimatePresence>
+                  {filteredSessions.map((session) => (
+                    <motion.div
+                      key={session.session_id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      onClick={() => openChat(session)}
+                      className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-5 hover:border-blue-500/50 hover:shadow-xl transition-all cursor-pointer"
                     >
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h3
+                            title={session.title}
+                            className="font-bold text-slate-900 dark:text-white text-sm line-clamp-2 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition"
+                          >
+                            {session.title || "New Conversation"}
+                          </h3>
 
-                      <h3
-                        className="
-                          truncate
-                          font-semibold
-                        "
-                      >
+                          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setRenameSession(session);
+                                setNewTitle(session.title || "");
+                              }}
+                              title="Rename chat"
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSessionToDelete(session);
+                              }}
+                              title="Delete chat"
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
 
-                        {session.title ||
-                          "New Conversation"}
-
-                      </h3>
-
-
-                      <div
-                        className="
-                          mt-3
-                          flex
-                          items-center
-                          gap-2
-                          text-sm
-                          text-slate-500
-                          dark:text-slate-400
-                        "
-                      >
-
-                        <FileText
-                          size={16}
-                          className="
-                            shrink-0
-                            text-blue-500
-                          "
-                        />
-
-                        <span className="truncate">
-
-                          {session.document ||
-                            "No document"}
-
-                        </span>
-
+                        <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                          <FileText size={14} className="text-blue-500 shrink-0" />
+                          <span className="truncate">
+                            {session.document || "Direct Prompt / General"}
+                          </span>
+                        </div>
                       </div>
 
-                    </div>
-
-
-                    <button
-                      type="button"
-                      title="Delete conversation"
-                      disabled={
-                        deleting ===
-                        session.session_id
-                      }
-                      onClick={(event) =>
-                        deleteChat(
-                          event,
-                          session
-                        )
-                      }
-                      className="
-                        shrink-0
-                        rounded-lg
-                        p-2
-                        text-slate-400
-                        opacity-0
-                        transition
-                        hover:bg-red-500/10
-                        hover:text-red-500
-                        group-hover:opacity-100
-                        disabled:opacity-50
-                      "
-                    >
-
-                      {deleting ===
-                      session.session_id ? (
-
-                        <RefreshCw
-                          size={17}
-                          className="animate-spin"
-                        />
-
-                      ) : (
-
-                        <Trash2
-                          size={17}
-                        />
-
-                      )}
-
-                    </button>
-
-                  </div>
-
-
-                  <div
-                    className="
-                      mt-5
-                      flex
-                      items-center
-                      gap-2
-                      border-t
-                      border-slate-100
-                      pt-4
-                      text-xs
-                      text-slate-400
-                      dark:border-slate-800
-                    "
-                  >
-
-                    <Clock
-                      size={14}
-                    />
-
-                    {formatDate(
-                      session.updated_at ||
-                      session.created_at
-                    )}
-
-                  </div>
-
-                </article>
-
-              )
+                      <div className="mt-5 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-3 text-[11px] text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <Clock size={12} />
+                          {formatDate(session.updated_at || session.created_at)}
+                        </span>
+                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium group-hover:translate-x-0.5 transition">
+                          Open <ArrowRight size={12} />
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
             )}
+          </div>
+        </main>
+      </div>
 
+      {/* RENAME MODAL */}
+      <Modal
+        isOpen={!!renameSession}
+        onClose={() => setRenameSession(null)}
+        title="Rename Conversation"
+      >
+        <form onSubmit={handleRename} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Conversation Title
+            </label>
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none"
+              required
+              autoFocus
+            />
           </div>
 
-        )}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setRenameSession(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              isLoading={renaming}
+            >
+              Save Title
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
-      </main>
+      {/* DELETE MODAL */}
+      <Modal
+        isOpen={!!sessionToDelete}
+        onClose={() => setSessionToDelete(null)}
+        title="Delete Conversation?"
+        description={`Are you sure you want to delete "${sessionToDelete?.title}"?`}
+      >
+        <div className="flex justify-end gap-3 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSessionToDelete(null)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            isLoading={deleting}
+            onClick={handleDelete}
+            icon={Trash2}
+          >
+            Delete
+          </Button>
+        </div>
+      </Modal>
 
+      {/* CLEAR ALL MODAL */}
+      <Modal
+        isOpen={clearAllModal}
+        onClose={() => setClearAllModal(false)}
+        title="Clear All Conversations?"
+        description="This will permanently delete all your conversation sessions and messages. This action cannot be undone."
+      >
+        <div className="flex justify-end gap-3 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setClearAllModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            isLoading={clearingAll}
+            onClick={handleClearAll}
+            icon={Trash2}
+          >
+            Yes, Clear All
+          </Button>
+        </div>
+      </Modal>
     </div>
-
   );
-
 }
-
 
 export default Chats;

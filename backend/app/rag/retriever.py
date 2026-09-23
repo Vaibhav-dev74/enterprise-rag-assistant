@@ -11,14 +11,24 @@ vector_db = Chroma(
 )
 
 
-def retrieve_context(query, filename):
+def retrieve_context(query, filename, user_id=None):
+
+    if user_id:
+        filter_dict = {
+            "$and": [
+                {"source": filename},
+                {"user_id": str(user_id)}
+            ]
+        }
+    else:
+        filter_dict = {
+            "source": filename
+        }
 
     results = vector_db.similarity_search(
         query=query,
         k=5,
-        filter={
-            "source": filename
-        }
+        filter=filter_dict
     )
 
     print("\n========== RETRIEVED ==========")

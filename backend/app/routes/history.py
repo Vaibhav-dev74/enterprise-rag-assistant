@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 from app.database.database import SessionLocal
 from app.models.chat_history import ChatHistory
@@ -156,6 +157,133 @@ def delete_session(session_id: str):
 
         return {
             "message": "Conversation deleted successfully"
+        }
+
+    finally:
+
+        db.close()
+
+
+# =================================================
+# RENAME CONVERSATION
+# =================================================
+
+class RenameSessionRequest(BaseModel):
+    title: str
+
+
+@router.put("/session/{session_id}/title")
+def rename_session(session_id: str, req: RenameSessionRequest):
+
+    db = SessionLocal()
+
+    try:
+
+        session = (
+            db.query(ChatSession)
+            .filter(
+                ChatSession.session_id == session_id
+            )
+            .first()
+        )
+
+        if not session:
+
+            raise HTTPException(
+                status_code=404,
+                detail="Chat session not found"
+            )
+
+        session.title = req.title.strip()
+        db.commit()
+
+        return {
+            "message": "Session renamed successfully",
+            "session_id": session_id,
+            "title": session.title,
+        }
+
+    finally:
+
+        db.close()
+
+
+# =================================================
+# FORGET CONTEXT / CLEAR SESSION MESSAGES
+# =================================================
+
+@router.delete("/session/{session_id}/messages")
+def clear_session_messages(session_id: str):
+
+    db = SessionLocal()
+
+    try:
+
+        session = (
+            db.query(ChatSession)
+            .filter(
+                ChatSession.session_id == session_id
+            )
+            .first()
+        )
+
+        if not session:
+
+            raise HTTPException(
+                status_code=404,
+                detail="Chat session not found"
+            )
+
+        deleted_count = db.query(ChatHistory).filter(
+            ChatHistory.session_id == session_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        db.commit()
+
+        return {
+            "message": "Conversation memory cleared successfully",
+            "session_id": session_id,
+            "deleted_count": deleted_count,
+        }
+
+    finally:
+
+        db.close()
+
+
+# =================================================
+# CLEAR ALL CONVERSATIONS FOR A USER
+# =================================================
+
+@router.delete("/user/{user_id}/clear")
+def clear_all_user_history(user_id: int):
+
+    db = SessionLocal()
+
+    try:
+
+        # Delete all history messages for user
+        db.query(ChatHistory).filter(
+            ChatHistory.user_id == user_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        # Delete all sessions for user
+        deleted_sessions = db.query(ChatSession).filter(
+            ChatSession.user_id == user_id
+        ).delete(
+            synchronize_session=False
+        )
+
+        db.commit()
+
+        return {
+            "message": "All chat history cleared successfully",
+            "user_id": user_id,
+            "deleted_sessions": deleted_sessions,
         }
 
     finally:

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from datetime import datetime
 import os
 
@@ -12,16 +12,25 @@ UPLOAD_DIR = "uploads"
 
 
 @router.get("/documents")
-def list_documents(search: str = ""):
+def list_documents(
+    search: str = "",
+    user_id: int | None = Header(default=None, alias="X-User-ID")
+):
+    if not user_id:
+        return {
+            "documents": []
+        }
 
-    if not os.path.exists(UPLOAD_DIR):
+    user_dir = os.path.join(UPLOAD_DIR, str(user_id))
+
+    if not os.path.exists(user_dir):
         return {
             "documents": []
         }
 
     documents = []
 
-    for filename in os.listdir(UPLOAD_DIR):
+    for filename in os.listdir(user_dir):
 
         if not filename.lower().endswith(".pdf"):
             continue
@@ -30,7 +39,7 @@ def list_documents(search: str = ""):
             continue
 
         file_path = os.path.join(
-            UPLOAD_DIR,
+            user_dir,
             filename
         )
 
@@ -71,17 +80,26 @@ def list_documents(search: str = ""):
 
 
 @router.get("/documents/{filename}")
-def preview_document(filename: str):
+def preview_document(
+    filename: str,
+    user_id: int | None = Header(default=None, alias="X-User-ID")
+):
 
     filename = os.path.basename(filename)
 
-    file_path = os.path.join(
-        UPLOAD_DIR,
-        filename
-    )
+    file_path = None
 
-    if not os.path.exists(file_path):
+    if user_id:
+        user_path = os.path.join(UPLOAD_DIR, str(user_id), filename)
+        if os.path.exists(user_path):
+            file_path = user_path
 
+    if not file_path:
+        root_path = os.path.join(UPLOAD_DIR, filename)
+        if os.path.exists(root_path):
+            file_path = root_path
+
+    if not file_path or not os.path.exists(file_path):
         raise HTTPException(
             status_code=404,
             detail="Document not found"
@@ -111,17 +129,26 @@ def preview_document(filename: str):
 
 
 @router.delete("/documents/{filename}")
-def delete_document(filename: str):
+def delete_document(
+    filename: str,
+    user_id: int | None = Header(default=None, alias="X-User-ID")
+):
 
     filename = os.path.basename(filename)
 
-    file_path = os.path.join(
-        UPLOAD_DIR,
-        filename
-    )
+    file_path = None
 
-    if not os.path.exists(file_path):
+    if user_id:
+        user_path = os.path.join(UPLOAD_DIR, str(user_id), filename)
+        if os.path.exists(user_path):
+            file_path = user_path
 
+    if not file_path:
+        root_path = os.path.join(UPLOAD_DIR, filename)
+        if os.path.exists(root_path):
+            file_path = root_path
+
+    if not file_path or not os.path.exists(file_path):
         raise HTTPException(
             status_code=404,
             detail="Document not found"
@@ -133,7 +160,7 @@ def delete_document(filename: str):
         # Delete vectors from ChromaDB
         # --------------------------------
 
-        delete_document_vectors(filename)
+        delete_document_vectors(filename, user_id=user_id)
 
         # --------------------------------
         # Delete physical PDF

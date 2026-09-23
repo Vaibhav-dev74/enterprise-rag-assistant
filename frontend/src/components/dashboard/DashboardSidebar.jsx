@@ -88,42 +88,6 @@ function DashboardSidebar({
   return (
     <>
 
-      {/* MOBILE MENU BUTTON */}
-
-      <button
-        type="button"
-        onClick={() =>
-          setMobileOpen?.(
-            (prev) => !prev
-          )
-        }
-        className="
-          fixed
-          left-3
-          top-[72px]
-          z-[70]
-          rounded-lg
-          border
-          border-slate-300
-          bg-white
-          p-2
-          text-slate-700
-          shadow-lg
-          dark:border-slate-700
-          dark:bg-slate-800
-          dark:text-slate-300
-          lg:hidden
-        "
-      >
-
-        {mobileOpen ? (
-          <X size={22} />
-        ) : (
-          <Menu size={22} />
-        )}
-
-      </button>
-
       {/* BACKDROP */}
 
       {mobileOpen && (
@@ -137,6 +101,7 @@ function DashboardSidebar({
             inset-0
             z-[60]
             bg-black/60
+            backdrop-blur-xs
             lg:hidden
           "
         />
@@ -169,7 +134,7 @@ function DashboardSidebar({
 
           ${
             mobileOpen
-              ? "translate-x-0"
+              ? "translate-x-0 shadow-2xl"
               : `
                 -translate-x-full
                 lg:translate-x-0
@@ -178,11 +143,11 @@ function DashboardSidebar({
         `}
       >
 
-        <div className="px-5 pb-5 pt-7">
+        <div className="flex items-center justify-between px-5 pb-5 pt-6">
 
           <h2
             className="
-              text-xl
+              text-lg
               font-bold
               text-slate-900
               dark:text-white
@@ -190,6 +155,14 @@ function DashboardSidebar({
           >
             Workspace
           </h2>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen?.(false)}
+            className="lg:hidden rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition cursor-pointer"
+          >
+            <X size={18} />
+          </button>
 
         </div>
 

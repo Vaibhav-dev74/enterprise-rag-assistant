@@ -165,7 +165,9 @@ async def chat(request: ChatRequest):
 
             request.question,
 
-            request.filename
+            request.filename,
+
+            user_id=request.user_id
 
         )
 

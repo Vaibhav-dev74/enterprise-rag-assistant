@@ -27,11 +27,14 @@ async def upload_pdf(
     try:
 
         # -----------------------------------------
-        # Save PDF
+        # Save PDF in user-specific folder
         # -----------------------------------------
 
+        target_dir = os.path.join(UPLOAD_DIR, str(user_id)) if user_id else UPLOAD_DIR
+        os.makedirs(target_dir, exist_ok=True)
+
         file_path = os.path.join(
-            UPLOAD_DIR,
+            target_dir,
             file.filename
         )
 
@@ -86,7 +89,7 @@ async def upload_pdf(
 
 
         # -----------------------------------------
-        # Add source metadata
+        # Add source & user_id metadata
         # -----------------------------------------
 
         for chunk in chunks:
@@ -94,6 +97,9 @@ async def upload_pdf(
             chunk.metadata["source"] = (
                 file.filename
             )
+
+            if user_id:
+                chunk.metadata["user_id"] = str(user_id)
 
 
         # -----------------------------------------
@@ -105,7 +111,7 @@ async def upload_pdf(
         )
 
         print(
-            "Stored in ChromaDB"
+            f"Stored in ChromaDB (user_id={user_id})"
         )
 
 

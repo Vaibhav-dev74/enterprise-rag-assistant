@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.sql import func
 
 from app.database.database import Base
@@ -14,6 +14,12 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
 
     password = Column(String, nullable=False)
+
+    reset_token = Column(String, nullable=True)
+
+    is_verified = Column(Boolean, default=False, nullable=False)
+
+    verification_code = Column(String, nullable=True)
 
     created_at = Column(
         DateTime(timezone=True),

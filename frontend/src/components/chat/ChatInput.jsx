@@ -10,6 +10,7 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 function ChatInput({
   onSend,
@@ -60,7 +61,7 @@ function ChatInput({
       "application/pdf"
     ) {
 
-      alert(
+      toast.error(
         "Please select a PDF file."
       );
 
