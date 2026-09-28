@@ -244,9 +244,65 @@ Frontend client will be accessible at `http://localhost:5173`
 
 ---
 
+## 🚀 Cloud Hosting Guide (100% Free Tier: Vercel + Render)
+
+You can host this entire full-stack application online on free tier services without paying for expensive GPU servers.
+
+```mermaid
+graph LR
+    User["User Browser"] -->|HTTPS| Vercel["Frontend on Vercel (Free)"]
+    Vercel -->|REST API| Render["Backend on Render (Free)"]
+    Render -->|Free Fast LLM Inference| Groq["Groq Cloud API (Free Llama 3.3 70B)"]
+    Render -->|Scoped Vectors & Embeddings| Chroma["ChromaDB / SQLite"]
+```
+
+### Step 1: Get a Free Groq API Key (1 Minute)
+Free-tier cloud containers (512MB RAM, no GPU) cannot run a 16GB local Ollama model. **Groq** offers 100% free, ultra-fast inference (500 tokens/sec) for `llama-3.3-70b-versatile` with zero credit card required.
+1. Visit [console.groq.com](https://console.groq.com) and sign in with GitHub or Google.
+2. Navigate to **API Keys** and click **Create API Key**.
+3. Copy your key (starts with `gsk_...`).
+
+---
+
+### Step 2: Deploy Backend to Render.com (Free)
+1. Sign up or log into [render.com](https://render.com) with GitHub.
+2. Click **New +** -> **Web Service**.
+3. Select your GitHub repository: `enterprise-rag-assistant`.
+4. Configure the service:
+   - **Name**: `enterprise-rag-api`
+   - **Root Directory**: `backend`
+   - **Language**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Instance Type**: `Free`
+5. Under **Environment Variables**, add:
+   - `SECRET_KEY`: *(click Generate or enter any random 32-character string)*
+   - `GROQ_API_KEY`: `gsk_your_groq_api_key_here`
+   - `GROQ_MODEL`: `llama-3.3-70b-versatile`
+   - `CORS_ORIGINS`: `*`
+6. Click **Deploy Web Service**.
+7. Once deployed, copy your backend URL (e.g., `https://enterprise-rag-api.onrender.com`).
+
+---
+
+### Step 3: Deploy Frontend to Vercel (Free)
+1. Sign up or log into [vercel.com](https://vercel.com) with GitHub.
+2. Click **Add New...** -> **Project**.
+3. Import your `enterprise-rag-assistant` repository.
+4. In the configuration screen:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click `Edit` and select `frontend`
+5. Expand **Environment Variables** and add:
+   - **Key**: `VITE_API_URL`
+   - **Value**: `https://enterprise-rag-api.onrender.com` *(your Render backend URL from Step 2, without trailing slash)*
+6. Click **Deploy**.
+7. In ~60 seconds, your site is live! Click your generated Vercel domain to use your cloud-hosted Enterprise RAG app.
+
+---
+
 ## 🔒 Security & Privacy Best Practices
 
-- **Zero Data Leakage**: Inferences run locally via Ollama (`http://localhost:11434`); documents and embeddings remain entirely on your local machine.
+- **Zero Data Leakage**: Inferences run locally via Ollama (`http://localhost:11434`) during local development, or via encrypted API keys when hosted in cloud.
 - **Isolated Storage**: Documents are physically partitioned per user (`uploads/{user_id}/`), preventing cross-user file access.
 - **Filtered Vectors**: ChromaDB vector retrieval strictly matches `user_id` metadata.
 - **Bcrypt Hashing**: Passwords stored as secure salted Bcrypt hashes.
@@ -257,4 +313,5 @@ Frontend client will be accessible at `http://localhost:5173`
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
+
 

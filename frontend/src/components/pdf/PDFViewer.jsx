@@ -17,6 +17,7 @@ import {
 
 import "react-pdf/dist/Page/TextLayer.css";
 import "react-pdf/dist/Page/AnnotationLayer.css";
+import { API_BASE_URL } from "../../utils/constants";
 
 pdfjs.GlobalWorkerOptions.workerSrc =
   new URL(
@@ -93,10 +94,10 @@ function PDFViewer({
   const pdfUrl =
     selectedDocument
       ? user?.id
-        ? `http://127.0.0.1:8000/uploads/${user.id}/${encodeURIComponent(
+        ? `${API_BASE_URL}/uploads/${user.id}/${encodeURIComponent(
             selectedDocument
           )}`
-        : `http://127.0.0.1:8000/uploads/${encodeURIComponent(
+        : `${API_BASE_URL}/uploads/${encodeURIComponent(
             selectedDocument
           )}`
       : null;

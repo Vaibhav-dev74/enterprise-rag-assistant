@@ -1,7 +1,8 @@
+import os
 from jose import jwt
 from datetime import datetime, timedelta
 
-SECRET_KEY = "enterprise_rag_secret_key"
+SECRET_KEY = os.getenv("SECRET_KEY", "enterprise_rag_secret_key")
 
 ALGORITHM = "HS256"
 
