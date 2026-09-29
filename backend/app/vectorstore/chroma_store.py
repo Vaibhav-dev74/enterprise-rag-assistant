@@ -1,14 +1,5 @@
 from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-
-
-# ----------------------------------------
-# Embedding Model
-# ----------------------------------------
-
-embedding_model = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
+from app.vectorstore.embeddings import embedding_model
 
 
 # ----------------------------------------
