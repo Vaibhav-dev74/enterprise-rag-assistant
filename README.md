@@ -257,7 +257,7 @@ graph LR
 ```
 
 ### Step 1: Get a Free Groq API Key (1 Minute)
-Free-tier cloud containers (512MB RAM, no GPU) cannot run a 16GB local Ollama model. **Groq** offers 100% free, ultra-fast inference (500 tokens/sec) for `llama-3.3-70b-versatile` with zero credit card required.
+Free-tier cloud containers (512MB RAM, no GPU) cannot run a 16GB local Ollama model. **Groq** offers 100% free, ultra-fast inference (500 tokens/sec) for `qwen/qwen3.8-27b` with zero credit card required.
 1. Visit [console.groq.com](https://console.groq.com) and sign in with GitHub or Google.
 2. Navigate to **API Keys** and click **Create API Key**.
 3. Copy your key (starts with `gsk_...`).
@@ -278,7 +278,7 @@ Free-tier cloud containers (512MB RAM, no GPU) cannot run a 16GB local Ollama mo
 5. Under **Environment Variables**, add:
    - `SECRET_KEY`: *(click Generate or enter any random 32-character string)*
    - `GROQ_API_KEY`: `gsk_your_groq_api_key_here`
-   - `GROQ_MODEL`: `llama-3.3-70b-versatile`
+   - `GROQ_MODEL`: `qwen/qwen3.8-27b`
    - `CORS_ORIGINS`: `*`
 6. Click **Deploy Web Service**.
 7. Once deployed, copy your backend URL (e.g., `https://enterprise-rag-api.onrender.com`).
